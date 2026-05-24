@@ -63,7 +63,7 @@ jobs:
 
     - name: Test
       run: |
-        ./build/install_dir/Warfarmer/StardewEngineTest.exe
+        ./build/install_dir/Tests/StardewEngineTest.exe
 
     - uses: actions/upload-artifact@v4
       with:
