@@ -1,0 +1,51 @@
+name: Ubuntu CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ["SDL2", "GLFW3"]
+        baked: ["ON", "OFF"]
+        type: ["Release", "Debug"]
+        gl_api: ["OPENGL", "OPENGLES"]
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        submodules: recursive
+    - name: Get Dependencies
+      run: |
+        bash GetDependencies.sh
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DBAKE_ITEM_DEFS=${{ matrix.baked }} -DSTARDEW_PLATFORM=${{ matrix.platform }} -DSTARDEW_GL_API_TYPE=${{ matrix.gl_api }}
+        make
+
+    - name: Test
+      run: |
+        cd ./build/enginetest
+        ./StardewEngineTest
+
+    - name: NetTest
+      run: |
+        sudo ./RunEngineNetTest.sh
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: my-artifact-${{ matrix.baked }}-${{ matrix.platform }}-${{ matrix.type }} 
+        path: ./build/*.so
+
