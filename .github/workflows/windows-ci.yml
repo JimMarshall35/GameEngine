@@ -51,20 +51,7 @@ jobs:
 
     - name: Install Conan dependencies
       run: |
-        cd Stardew
         cmd /c "GetDependenciesConan.bat" ${{ matrix.type }} 
-
-    - name: Stamp version
-      shell: cmd
-      env:
-          BAKED: ${{ matrix.baked }}
-          TYPE: ${{ matrix.type }} 
-          PLATFORM: ${{ matrix.platform }} 
-      run: |
-        cd Stardew/game
-        set ARGS=--platform %PLATFORM% --build_type %TYPE%
-        if /I "%BAKED%"=="ON" set ARGS=%ARGS% --baked
-        python make_release_version_header.py %ARGS%
         
     - name: Build
       env:
@@ -74,10 +61,8 @@ jobs:
       run: |
         cmd /c "Build.bat" %TYPE% %BAKED% %PLATFORM% OPENGL
 
-
     - name: Test
       run: |
-        cd ./Stardew
         ./build/install_dir/Warfarmer/StardewEngineTest.exe
 
     - uses: actions/upload-artifact@v4
