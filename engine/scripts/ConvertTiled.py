@@ -152,7 +152,7 @@ class Atlas:
                         self.lut[key] = dict()
                     self.lut[key][index] = len(self.sprites) + 1
                     self.sprites.append(AtlasSprite(image, t, l, tileWidth, tileHeight, name))
-    def __init__(self, originalNormalizedIndexes : dict[str, set[int]], namedTiles : dict[str,int], args):
+    def __init__(self, originalNormalizedIndexes, namedTiles, args):
         self.originalNormalizedIndexes = originalNormalizedIndexes
         self.sprites = []
         self.lut = dict()
