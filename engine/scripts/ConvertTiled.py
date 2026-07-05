@@ -394,7 +394,7 @@ def build_tilemap_binaries(args, parsed_tile_maps, atlas):
                     f.write(struct.pack("I", 1))
                     data = layer["data"]
                     tw, th = get_tile_layer_tile_dims(layer, atlas, tilesets)
-                    print(f"Layer {str(layerNum)} Tile width: {tw} Tile height: {th} Width: {layer["width"]} tiles, Height: {layer["height"]} tiles.")
+                    print(f"Layer {str(layerNum)} Tile width: {tw} Tile height: {th} Width: {layer['width']} tiles, Height: {layer['height']} tiles.")
                     layerNum += 1
                     # INT FIELDS FOR LAYER
                     f.write(struct.pack("I", layer["width"]))
@@ -424,7 +424,7 @@ def build_tilemap_binaries(args, parsed_tile_maps, atlas):
                             serializer =  entity_binary_serializers[o["type"]]
                             serializer.serialize(f, o)
                         else:
-                            print(f"Warning: No serializer for entity type {o["type"]}")
+                            print(f"Warning: No serializer for entity type {o['type']}")
                         pass
 
         print("\n")
