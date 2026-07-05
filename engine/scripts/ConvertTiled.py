@@ -129,7 +129,7 @@ class Atlas:
         top.set("tilesetEnd",f"{counter}")
         print(f"tilesetEnd: {counter}")
         print(f"Num Sprites: {len(self.sprites)}")
-        ET.indent(tree, space=" ", level=3)
+        #ET.indent(tree, space=" ", level=3)
         with open(outPath, "wb") as f:
             f.write(ET.tostring(top))
     def make_sprites(self):
