@@ -48,7 +48,7 @@ def parse_tileset_file(path):
 def get_normalized_index(index: int, tileset: object) -> int:
     return (index - tileset["firstgid"]) + 1
 
-def get_named_tiles(parsed_tile_maps) -> dict[str, (int,str)]:
+def get_named_tiles(parsed_tile_maps): #-> dict[str, (int,str)]:
     d = dict()
     for p in parsed_tile_maps:
         map_dir = os.path.dirname(os.path.abspath(p["srcPath"]))
@@ -60,7 +60,7 @@ def get_named_tiles(parsed_tile_maps) -> dict[str, (int,str)]:
                     d[tile["type"]] = (tile["id"] + 1, t["source"]) 
     return d
 
-def get_tiles_used_per_tileset(parsed_tile_maps) -> dict[str, set[int]]:
+def get_tiles_used_per_tileset(parsed_tile_maps): #-> dict[str, set[int]]:
     used_tiles = dict()
     for p in parsed_tile_maps:
         tilesets = p["tilesets"]
@@ -100,8 +100,8 @@ class AtlasSprite:
         }
 
 class Atlas:
-    sprites: list[AtlasSprite]
-    lut: dict[str, dict[int, int]] # by path, a lookup table from normalized index to index within the atlas
+    sprites = []#: list[AtlasSprite]
+    lut = dict()#: dict[str, dict[int, int]] # by path, a lookup table from normalized index to index within the atlas
     def get_atlas_index(self, normalized_index, path):
         assert path in self.lut
         assert normalized_index in self.lut[path]
