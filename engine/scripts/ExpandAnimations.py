@@ -90,6 +90,6 @@ def main():
     animations = root.findall("animation")
     for anim in animations:
         expand_animation(anim)
-    ET.indent(tree, space="\t", level=0)
+    #ET.indent(tree, space="\t", level=0)
     tree.write(args.output_path)
 main()
