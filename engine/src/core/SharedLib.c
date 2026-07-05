@@ -1,9 +1,12 @@
+#if defined(__linux__)
+#define _GNU_SOURCE
+#endif
+
 #include "SharedLib.h"
 #include <stdlib.h>
 #include <string.h>
 
 #if defined(__linux__)
-#define _GNU_SOURCE
 
 #include <dlfcn.h>
 
