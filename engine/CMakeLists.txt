@@ -25,7 +25,7 @@ if(WIN32)
   find_package(Lua 5.4 REQUIRED)
 else()
   find_package(PkgConfig REQUIRED)
-  pkg_check_modules(LUA REQUIRED IMPORTED_TARGET lua5.4)
+  pkg_check_modules(LUA REQUIRED IMPORTED_TARGET lua5.3)
 endif()
 
 find_package(Freetype REQUIRED)
