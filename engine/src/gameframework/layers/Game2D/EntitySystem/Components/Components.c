@@ -135,14 +135,16 @@ void Co_DestroyComponents(struct Entity2D* entity, struct GameFrameworkLayer* pL
         case ETE_SpriteAnimator:
             break;
         case ETE_Tiles:
-            struct TilesComponent* pTilesC = &entity->components[i].data.tiles;
-            struct GameLayer2DData* pData = pLayer->userData;
-
-            for(int i = 0; i < pTilesC->numTiles; i++)
             {
-                struct EntityTile* pTile = &pTilesC->tiles[i];
-                struct TileMapLayer* pTMLayer = &pData->tilemap.layers[pTile->layer];
-                pTMLayer->Tiles[pTile->y * pTMLayer->widthTiles + pTile->x] = 0;
+                struct TilesComponent* pTilesC = &entity->components[i].data.tiles;
+                struct GameLayer2DData* pData = pLayer->userData;
+
+                for(int i = 0; i < pTilesC->numTiles; i++)
+                {
+                    struct EntityTile* pTile = &pTilesC->tiles[i];
+                    struct TileMapLayer* pTMLayer = &pData->tilemap.layers[pTile->layer];
+                    pTMLayer->Tiles[pTile->y * pTMLayer->widthTiles + pTile->x] = 0;
+                }
             }
             break;
         default:
