@@ -196,7 +196,7 @@ class Run:
         self.file.write(struct.pack("H", self.runLen))
         self.file.write(struct.pack("H", self.runVal))
 
-def build_runs(file, data : list[int], atlas : Atlas, tilesets) -> list[Run]:
+def build_runs(file, data, atlas : Atlas, tilesets): #-> list[Run]:
     i = 0
     runs = []
     ts = find_tileset(data[i], tilesets)
@@ -439,7 +439,7 @@ def convert_tile_maps(args):
             tm["srcPath"] = p
             parsed_tile_maps.append(tm)
     named = get_named_tiles(parsed_tile_maps)
-    used : dict[str, set[int]] = get_tiles_used_per_tileset(parsed_tile_maps)
+    used  = get_tiles_used_per_tileset(parsed_tile_maps) # : dict[str, set[int]]
     atlas = Atlas(used, named, args)
     atlasXMLPath = os.path.join(os.path.abspath(args.outputDir), "atlas.xml")
     atlas.output_atlas_xml_file(atlasXMLPath)
