@@ -364,7 +364,7 @@ def count_serializable_ents(entities):
 
         if e["type"] in  entity_binary_serializers:
             i += 1
-    print(f"types present: {", ".join([f"{x[0]}({x[1]})" for x in types.items()])}")
+    print(f"types present: {', '.join([f'{x[0]}({x[1]})' for x in types.items()])}")
     return i
 def build_tilemap_binaries(args, parsed_tile_maps, atlas):
     print("outputting tilemap binary files...\n")
