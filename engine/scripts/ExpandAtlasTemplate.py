@@ -61,7 +61,7 @@ def expand_templates(input_path: Path, output_path: Path) -> None:
         for offset, expanded_child in enumerate(expanded_root):
             root.insert(insert_index + offset, expanded_child)
 
-    ET.indent(tree, space="  ")
+    #ET.indent(tree, space="  ")
     tree.write(output_path, encoding="unicode", xml_declaration=True)
     print(f"Written to {output_path}")
 
