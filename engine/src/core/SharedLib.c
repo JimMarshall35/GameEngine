@@ -3,6 +3,7 @@
 #include <string.h>
 
 #if defined(__linux__)
+#define _GNU_SOURCE
 
 #include <dlfcn.h>
 
