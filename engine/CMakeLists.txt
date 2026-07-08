@@ -22,7 +22,7 @@ elseif(STARDEW_PLATFORM STREQUAL "SDL2")
 endif()
 
 if(WIN32)
-  find_package(Lua 5.4 REQUIRED)
+  find_package(Lua 5.3 REQUIRED)
 else()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(LUA REQUIRED IMPORTED_TARGET lua5.3)
