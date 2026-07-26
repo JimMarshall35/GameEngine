@@ -7,8 +7,8 @@
 #include <stdbool.h>
 #include "SharedLib.h"
 
-#define SCR_WIDTH 640
-#define SCR_HEIGHT 480
+#define SCR_WIDTH 1024
+#define SCR_HEIGHT 640
 #define TARGET_FPS 60
 
 int Mn_GetScreenWidth();
