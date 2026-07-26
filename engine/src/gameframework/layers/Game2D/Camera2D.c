@@ -123,23 +123,16 @@ void UpdateCameraClamp(struct GameLayer2DData* pGameLayerData)
 	/* if the tilemap is smaller than the viewport then cemtre the camera at the centre of the tilemap */
 	if(tilemapW <= viewportW)
 	{
-		vec2 camCenter = {
-			tmCentre[0],
-			camCenter[1]
-		};
+		camCenter[0] = tmCentre[0];
 		xAdjust = 0.0f;
 		CenterCameraAt(camCenter[0], camCenter[1], pCam, pGameLayerData->windowW, pGameLayerData->windowH);
 	}
 	if(tilemapH <= viewportH)
 	{
-		vec2 camCenter = {
-			camCenter[0],
-			tmCentre[1]
-		};
+		camCenter[1] = tmCentre[1];
 		yAdjust = 0.0f;
 		CenterCameraAt(camCenter[0], camCenter[1], pCam, pGameLayerData->windowW, pGameLayerData->windowH);
 	}
-
 
 	pCam->position[0] -= xAdjust;
 	pCam->position[1] -= yAdjust;
