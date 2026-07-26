@@ -599,7 +599,7 @@ DrawContext Dr_InitDrawContext()
 
 	gVertexBuffersPool = NEW_OBJECT_POOL(struct VertexBuffer, 256);
 	gIndexedVertexBuffersPool = NEW_OBJECT_POOL(struct IndexedVertexBuffer, 256);
-	gLineVertexPool = NEW_OBJECT_POOL(struct LineVertex, 256);
+	gLineVertexPool = NEW_OBJECT_POOL(struct VertexBuffer, 256);
 	glm_mat4_identity(gScreenspaceOrtho);
 	CreateShaders();
 	return d;
