@@ -4,6 +4,8 @@
 #include "InputContext.h"
 #include "PlatformDefs.h"
 #include "KeyCodes.h"
+#include "GameFramework.h"
+#include "Log.h"
 
 void Common_FramebufferSizeChangeHandler(int width, int height)
 {

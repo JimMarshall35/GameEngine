@@ -469,12 +469,18 @@ HFont At_AddFont(const struct FontAtlasAdditionSpec* pFontSpec)
 
 int SortFunc(const void* a, const void* b) 
 {
+	// AtlasSprite* pSprite1 = (AtlasSprite*)a;
+	// AtlasSprite* pSprite2 = (AtlasSprite*)b;
+	// int area1 = pSprite1->actualHeightPX * pSprite1->actualWidthPX;
+	// int area2 = pSprite2->actualHeightPX * pSprite2->actualWidthPX;
+	// return
+	// 	area1 < area2;
 	AtlasSprite* pSprite1 = (AtlasSprite*)a;
 	AtlasSprite* pSprite2 = (AtlasSprite*)b;
 	int area1 = pSprite1->actualHeightPX * pSprite1->actualWidthPX;
 	int area2 = pSprite2->actualHeightPX * pSprite2->actualWidthPX;
-	return
-		area1 < area2;
+	return (area2 > area1) - (area2 < area1); // descending
+
 }
 
 struct AtlasRect
@@ -661,9 +667,15 @@ struct AtlasRect* MergeFreeSpace(struct AtlasRect* pFreeSpace, struct Bitfield2D
 
 int FreeSpaceSortFunc(const void* a, const void* b)
 {
-	struct AtlasRect* pA = a;
-	struct AtlasRect* pB = b;
-	return pA->w * pA->h > pB->w * pB->h;
+	// struct AtlasRect* pA = a;
+	// struct AtlasRect* pB = b;
+	// return pA->w * pA->h > pB->w * pB->h;
+	const struct AtlasRect* pA = a;
+	const struct AtlasRect* pB = b;
+	long areaA = (long)pA->w * pA->h;
+	long areaB = (long)pB->w * pB->h;
+	return (areaA > areaB) - (areaA < areaB); // ascending
+
 }
 
 static VECTOR(struct AtlasRect) NestSingleSprite(int* outW, int* outH, AtlasSprite* pSprite, VECTOR(struct AtlasRect) freeSpace, struct Bitfield2D* pBF)
@@ -717,6 +729,7 @@ static VECTOR(struct AtlasRect) NestSingleSprite(int* outW, int* outH, AtlasSpri
 		freeSpace = MergeFreeSpace(freeSpace, pBF, *outW, *outH);
 		DestoryVector(prevFreeSpace);
 #endif
+		qsort(freeSpace, VectorSize(freeSpace), sizeof(struct AtlasRect), &FreeSpaceSortFunc);
 		return freeSpace;
 	}
 	else
@@ -950,7 +963,7 @@ static struct EndAtlasOptions* GetDefaultAtlasOptions()
 
 hAtlas At_EndAtlas(struct DrawContext* pDC)
 {
-	At_EndAtlasEx(pDC, GetDefaultAtlasOptions());
+	return At_EndAtlasEx(pDC, GetDefaultAtlasOptions());
 }
 
 hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
@@ -1358,7 +1371,7 @@ static void LoadAtlasFont(xmlNode* pChild)
 		{
 			faas.fontOptions = FS_Normal;
 		}
-		else if (strcmp(attribute, "italic"))
+		else if (strcmp(attribute, "italic") == 0)
 		{
 			faas.fontOptions = FS_Italic;
 		}
@@ -1417,7 +1430,7 @@ static void LoadAtlasFont(xmlNode* pChild)
 
 hAtlas At_LoadAtlas(xmlNode* child0, DrawContext* pDC)
 {
-	At_LoadAtlasEx(child0, pDC, GetDefaultAtlasOptions());
+	return At_LoadAtlasEx(child0, pDC, GetDefaultAtlasOptions());
 }
 
 hAtlas At_LoadAtlasEx(xmlNode* child0, DrawContext* pDC, struct EndAtlasOptions* pOptions)
