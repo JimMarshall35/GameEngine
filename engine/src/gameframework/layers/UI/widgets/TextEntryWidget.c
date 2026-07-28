@@ -51,7 +51,7 @@ static void LayoutChildren(struct UIWidget* pWidget, struct UIWidget* pParent)
 static void OnDestroy(struct UIWidget* pWidget)
 {
 	TextWidget_Destroy(&((struct TextEntryWidgetData*)&pWidget->pImplementationData)->textWidget);
-	free(pWidget->pImplementationData);
+	//free(pWidget->pImplementationData);
 }
 
 static void* FakeChildOutputVerts(struct UIWidget* pWidget, VECTOR(WidgetVertex) pOutVerts)

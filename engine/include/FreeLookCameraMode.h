@@ -19,6 +19,8 @@ struct FreeLookCameraModeControls
 
 	struct ButtonBinding freeLookSelectButtonBinding;
 
+	struct ButtonBinding exitFreeLookModeBinding;
+
 	struct AxisBinding freeLookCursorXAxisBinding;
 	struct AxisBinding freeLookCursorYAxisBinding;
 

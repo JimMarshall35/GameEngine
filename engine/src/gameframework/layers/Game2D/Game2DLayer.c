@@ -18,6 +18,7 @@
 #include "Network.h"
 #include "Log.h"
 #include "Game2DLayerNetwork.h"
+#include "main.h"
 
 int gTilesRendered = 0;
 
@@ -312,18 +313,22 @@ static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 		.pLayer = pLayer
 	};
 
-	Et2D_IterateEntities(&pData->entities, &UpdateEntities, &ctx);
-	Ph_PhysicsWorldStep(pData->hPhysicsWorld, deltaT, 4);
-	struct PostPhysEntityContext postPhysCtx = 
+	if(!pData->bDebugLayerAttatched)
 	{
-		.deltaT =deltaT,
-		.pLayer = pLayer
-	};
-	Ph_PhysicsWorldDoCollisionEvents(pLayer);
-	Et2D_IterateEntities(&pData->entities, &PostPhysicsEntities, &postPhysCtx);
+		Et2D_IterateEntities(&pData->entities, &UpdateEntities, &ctx);
+		Ph_PhysicsWorldStep(pData->hPhysicsWorld, deltaT, 4);
+		struct PostPhysEntityContext postPhysCtx = 
+		{
+			.deltaT =deltaT,
+			.pLayer = pLayer
+		};
+		Ph_PhysicsWorldDoCollisionEvents(pLayer);
+		Et2D_IterateEntities(&pData->entities, &PostPhysicsEntities, &postPhysCtx);
+		
+		if(pData->cameraClampedToTilemapLayer >= 0)
+			UpdateCameraClamp(pData);
+	}
 	
-	if(pData->cameraClampedToTilemapLayer >= 0)
-		UpdateCameraClamp(pData);
 
 	Et2D_DoEntityMessagesQueue(&pData->entities, pLayer);
 }
@@ -638,12 +643,16 @@ static void Input(struct GameFrameworkLayer* pLayer, InputContext* context)
 	{
 		FreeLookMode2DInput(pLayer, context);
 	}
-	struct InputEntityContext ctx =
+	else
 	{
-		.pLayer = pLayer,
-		.inputCtx = context
-	};
-	Et2D_IterateEntities(&pData->entities, &InputEntities, &ctx);
+		struct InputEntityContext ctx =
+		{
+			.pLayer = pLayer,
+			.inputCtx = context
+		};
+		Et2D_IterateEntities(&pData->entities, &InputEntities, &ctx);
+	}
+	
 }
 
 static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
@@ -670,9 +679,21 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 }
 
 
-static void ActivateFreeLookMode(InputContext* inputContext, struct GameLayer2DData* pData)
+void Game2DLayer_ActivateFreeLookMode(InputContext* inputContext, struct GameLayer2DData* pData)
 {
 	In_SetMask(&pData->freeLookCtrls.freeLookInputsMask, inputContext);
+	struct GameFrameworkLayer testLayer;
+    memset(&testLayer, 0, sizeof(struct GameFrameworkLayer));
+    struct XMLUIGameLayerOptions options;
+    char buf[256];
+    cwk_path_join(gCmdArgs.assetsDir, "UI/debug_overlay.xml", buf, 256);
+    options.xmlPath = buf;
+    options.pDc = pData->pDrawContext;
+	options.bLoadImmediately = false;
+    XMLUIGameLayer_Get(&testLayer, &options);
+    testLayer.flags |= ( EnableOnPush | EnableOnPop );
+
+    GF_PushGameFrameworkLayer(&testLayer);
 }
 
 static void OnDebugLayerPushed(void* pUserData, void* pEventData)
@@ -712,7 +733,7 @@ void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawCont
 	Et2D_InitCollection(&pData->entities);
 	pData->hPhysicsWorld = Ph_GetPhysicsWorld(0, 0, 32.0f); // todo - pass these arguments in somehow
 	BindFreeLookControls(inputContext, pData);
-	ActivateFreeLookMode(inputContext, pData);
+	//ActivateFreeLookMode(inputContext, pData);
 	if (!pData->bLoaded)
 	{
 		LoadLayerAssets(pData, drawContext);

@@ -110,13 +110,6 @@ struct GameLayer2DData
 	/** @brief mostly pointless */
 	bool bLoaded;
 
-	/** @brief
-		When in this mode the game is paused and you have
-		a different set of controls to freely move the camera around,
-		in future I might add editing
-	*/
-	bool bFreeLookMode;
-
 	/** @brief the one and only camera */
 	struct Transform2D camera;
 
@@ -286,6 +279,8 @@ VECTOR(HEntity2D) Et2D_QueryDynEntities(struct GameFrameworkLayer* pLayer, struc
 /// @param pTrans input transform
 /// @param out output matrix
 void Et2D_Transform2DToMat3(struct Transform2D* pTrans, mat3 out);
+
+void Game2DLayer_ActivateFreeLookMode(InputContext* inputContext, struct GameLayer2DData* pData);
 
 #ifdef __cplusplus
 }

@@ -20,6 +20,12 @@ void FreeLookMode2DInput(struct GameFrameworkLayer* pLayer, InputContext* contex
 {
     struct GameLayer2DData* pData = pLayer->userData;
 
+	if(In_GetButtonPressThisFrame(context, pData->freeLookCtrls.exitFreeLookModeBinding))
+	{
+		GF_PopGameFrameworkLayer();
+		return;
+	}
+
 	const float FREE_LOOK_ZOOM_FACTOR = 0.99;
 	const float FREE_LOOK_MOVEMENT_SPEED = 0.3;
 	bool bZoomIn = In_GetButtonValue(context, pData->freeLookCtrls.freeLookZoomInBinding);
@@ -108,7 +114,7 @@ void FreeLookMode2DInput(struct GameFrameworkLayer* pLayer, InputContext* contex
 		glm_vec2_scale(wstrans, -1.0f, wstrans);
 		glm_vec2_add(dragAnchorWorldSpace, wstrans, camCenter);
 		CenterCameraAt(camCenter[0], camCenter[1], &pData->camera, pData->windowW, pData->windowH); // to test
-
+		
 	}
 
 	bLastSelect = bSelectVal;
@@ -126,6 +132,7 @@ void BindFreeLookControls(InputContext* inputContext, struct GameLayer2DData* pD
 	pData->freeLookCtrls.freeLookCursorXAxisBinding = In_FindAxisMapping(inputContext, FREE_LOOK_CURSOR_X_BINDING_NAME);
 	pData->freeLookCtrls.freeLookCursorYAxisBinding = In_FindAxisMapping(inputContext, FREE_LOOK_CURSOR_Y_BINDING_NAME);
 	pData->freeLookCtrls.freeLookSelectButtonBinding = In_FindButtonMapping(inputContext, FREE_LOOK_CURSOR_SELECT_BINDING_NAME);
+	pData->freeLookCtrls.exitFreeLookModeBinding = In_FindButtonMapping(inputContext, "exitFreeLookMode");
 
 	In_ActivateButtonBinding(pData->freeLookCtrls.freeLookZoomInBinding, &pData->freeLookCtrls.freeLookInputsMask);
 	In_ActivateButtonBinding(pData->freeLookCtrls.freeLookZoomOutBinding, &pData->freeLookCtrls.freeLookInputsMask);
@@ -134,6 +141,7 @@ void BindFreeLookControls(InputContext* inputContext, struct GameLayer2DData* pD
 	In_ActivateButtonBinding(pData->freeLookCtrls.freeLookZoomMoveYPosBinding, &pData->freeLookCtrls.freeLookInputsMask);
 	In_ActivateButtonBinding(pData->freeLookCtrls.freeLookZoomMoveYNegBinding, &pData->freeLookCtrls.freeLookInputsMask);
 	In_ActivateButtonBinding(pData->freeLookCtrls.freeLookSelectButtonBinding, &pData->freeLookCtrls.freeLookInputsMask);
+	In_ActivateButtonBinding(pData->freeLookCtrls.exitFreeLookModeBinding, &pData->freeLookCtrls.freeLookInputsMask);
 	In_ActivateAxisBinding(pData->freeLookCtrls.freeLookCursorXAxisBinding, &pData->freeLookCtrls.freeLookInputsMask);
 	In_ActivateAxisBinding(pData->freeLookCtrls.freeLookCursorYAxisBinding, &pData->freeLookCtrls.freeLookInputsMask);
 }
