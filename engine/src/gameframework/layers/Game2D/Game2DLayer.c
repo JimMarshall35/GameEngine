@@ -19,6 +19,7 @@
 #include "Log.h"
 #include "Game2DLayerNetwork.h"
 #include "main.h"
+#include "cwalk.h"
 
 int gTilesRendered = 0;
 
