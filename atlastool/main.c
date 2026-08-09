@@ -89,30 +89,51 @@ static hTexture UploadTextureMock(void* src, int channels, int pxWidth, int pxHe
 int main(int argc, char** argv)
 {
 	Log_Init();
+	Log_SetLevel(LogLvl_Verbose);
 	gCmdArgs.assetsDir = "./WfAssets";
 	int r = ParseArgs(argc, argv);
-	Log_Info("input file: %s", args.xmlPath);
-	Log_Info("output file: %s", args.outPath);
+	printf("input file: %s\n", args.xmlPath);
+	printf("output file: %s\n", args.outPath);
 	fflush(stdout);
 	if (r)
 	{
 		return r;
 	}
 
+	printf("IR_InitImageRegistry\n");
+	fflush(stdout);
 	IR_InitImageRegistry(NULL);
+	printf("At_Init\n");
+	fflush(stdout);
 	At_Init();
+	printf("xmlReadFile\n");
+	fflush(stdout);
 	xmlDoc* pXMLDoc = xmlReadFile(args.xmlPath, NULL, 0);
+	printf("xmlDocGetRootElement\n");
+	fflush(stdout);
 	xmlNode* root = xmlDocGetRootElement(pXMLDoc);
 	struct DrawContext dc;
 	dc.UploadTexture = &UploadTextureMock;
+	printf("At_LoadAtlasEx\n");
+	fflush(stdout);
 	hAtlas atlas = At_LoadAtlasEx(root, &dc, &args.atlasOptions);
 	if (atlas == NULL_HANDLE)
 	{
 		return 1;
 	}
 	struct BinarySerializer bs;
+	printf("BS_CreateForSave\n");
+	fflush(stdout);
 	BS_CreateForSave(args.outPath, &bs);
+	printf("At_SerializeAtlas\n");
+	fflush(stdout);
 	At_SerializeAtlas(&bs, &atlas, &dc);
+	printf("BS_Finish\n");
+	fflush(stdout);
 	BS_Finish(&bs);
+	printf("Done!\n");
+	fflush(stdout);
+
+
 	return 0;
 }
