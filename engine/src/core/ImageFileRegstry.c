@@ -27,6 +27,7 @@ HImage IR_RegisterImagePath(const char* path)
         return i;
     }
     cwk_path_join(gCmdArgs.assetsDir, path, imagef.path, bufsize); 
+    Log_Info("IR_RegisterImagePath registering image file %s", imagef.path);
     gImageFiles = VectorPush(gImageFiles, &imagef);
     i = VectorSize(gImageFiles) - 1;
     return i;
