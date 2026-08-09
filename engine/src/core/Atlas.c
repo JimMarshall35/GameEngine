@@ -937,6 +937,7 @@ static void WriteFontSprites(Atlas* pAtlas, AtlasSprite* outFontSprites)
 {
 	for (int i = 0; i < VectorSize(pAtlas->fonts); i++)
 	{
+		Log_Verbose("writing font");
 		for (int j = 0; j < 256; j++)
 		{
 			AtlasSprite* pSrc = &pAtlas->fonts[i].sprites[j];
@@ -971,25 +972,32 @@ hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
 	Atlas* pAtlas = GetCurrentAtlas();
 	if (!pAtlas)
 	{
+		Log_Error("Null atlas!");
 		return NULL_ATLAS;
 	}
 	size_t numSprites = VectorSize(pAtlas->sprites);
 	size_t numSpritesFromFonts = CountTotalSpritesInFonts(pAtlas);
 	if (numSprites + numSpritesFromFonts <= 0)
 	{
+		Log_Error("No Sprites!");
 		return NULL_HANDLE;
 	}
+	Log_Verbose("successfully allocated memory for sprites copy");
 	AtlasSprite* spritesCopy = malloc(sizeof(AtlasSprite) * (numSprites + numSpritesFromFonts));
 	if (spritesCopy)
 	{
+		Log_Verbose("successfully allocated memory for sprites copy");
 		memcpy(spritesCopy, pAtlas->sprites, numSprites * sizeof(AtlasSprite));
 		AtlasSprite* pOutFontSprites = spritesCopy + numSprites;
 		WriteFontSprites(pAtlas, pOutFontSprites);
 
+		Log_Verbose("qsort");
 		qsort(spritesCopy, numSprites + numSpritesFromFonts, sizeof(AtlasSprite), &SortFunc);
 		int w, h;
+		Log_Verbose("NestSprites")
 		NestSprites(&w, &h, spritesCopy, numSprites + numSpritesFromFonts, pOptions);
 
+		Log_Verbose("CopyNestedPositions")
 		CopyNestedPositions(pAtlas, spritesCopy, numSprites + numSpritesFromFonts);
 		free(spritesCopy);
 
@@ -997,6 +1005,7 @@ hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
 		size_t atlasSizeBytes = atlasSizePxls * CHANNELS_PER_PIXEL;
 		u8* pAtlasBytes = malloc(atlasSizeBytes);
 		memset(pAtlasBytes, 0, atlasSizeBytes);
+		Log_Verbose("Blitting atlas sprites");
 		for (int i = 0; i < VectorSize(pAtlas->sprites); i++)
 		{
 			AtlasSprite* pSprite = &pAtlas->sprites[i];
@@ -1010,6 +1019,7 @@ hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
 			pSprite->individualTileBytes = NULL;
 		}
 
+		Log_Verbose("Blitting atlas font sprites");
 		for (int i = 0; i < VectorSize(pAtlas->fonts); i++)
 		{
 			for (int j = 0; j < 256; j++)
@@ -1029,10 +1039,12 @@ hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
 		pAtlas->atlasWidth = w;
 		pAtlas->atlasHeight = h;
 
+		Log_Verbose("CalculateAtlasUVs");
 		CalculateAtlasUVs(pAtlas);
 
 		if (pOptions->outDebugBitmapPath)
 		{
+			Log_Verbose("writing bitmap");
 			stbi_write_bmp(pOptions->outDebugBitmapPath, w, h, CHANNELS_PER_PIXEL, pAtlasBytes);
 		}
 		
@@ -1491,6 +1503,7 @@ hAtlas At_LoadAtlasEx(xmlNode* child0, DrawContext* pDC, struct EndAtlasOptions*
 			LoadNamedTiles(pChild, &onChild);
 		}
 	}
+	Log_Verbose("At_EndAtlasEx");
 	return At_EndAtlasEx(pDC, pOptions);
 }
 
