@@ -994,10 +994,10 @@ hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
 		Log_Verbose("qsort");
 		qsort(spritesCopy, numSprites + numSpritesFromFonts, sizeof(AtlasSprite), &SortFunc);
 		int w, h;
-		Log_Verbose("NestSprites")
+		Log_Verbose("NestSprites");
 		NestSprites(&w, &h, spritesCopy, numSprites + numSpritesFromFonts, pOptions);
 
-		Log_Verbose("CopyNestedPositions")
+		Log_Verbose("CopyNestedPositions");
 		CopyNestedPositions(pAtlas, spritesCopy, numSprites + numSpritesFromFonts);
 		free(spritesCopy);
 
