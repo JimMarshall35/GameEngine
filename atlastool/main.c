@@ -33,6 +33,7 @@ void PrintHelpMsg()
 		"          -ih                            initial atlas height, will grow as sprites are added if there is no room. defaults to 512\n"
 		"          -initial-dims-from-sprites     take the atlases initial dims from the larges sprite\n"
 	);
+	fflush(stdout);
 }
 
 int ParseArgs(int argc, char** argv)
@@ -41,7 +42,8 @@ int ParseArgs(int argc, char** argv)
 	memset(&args, 0, sizeof(struct Args));
 	if (argc < 2)
 	{
-		Log_Error("At least one arg expected");
+		printf("At least one arg expected");
+		fflush(stdout);
 		return 1;
 	}
 	args.xmlPath = argv[1];
@@ -88,12 +90,18 @@ static hTexture UploadTextureMock(void* src, int channels, int pxWidth, int pxHe
 
 int main(int argc, char** argv)
 {
-	Log_Init();
-	Log_SetLevel(LogLvl_Verbose);
-	gCmdArgs.assetsDir = "./WfAssets";
 	int r = ParseArgs(argc, argv);
 	printf("input file: %s\n", args.xmlPath);
 	printf("output file: %s\n", args.outPath);
+	static char buf[256];
+	strcpy(buf, args.xmlPath);
+	strcat(buf, ".log");
+	gCmdArgs.logfilePath = buf;
+
+	Log_Init();
+	Log_SetLevel(LogLvl_Verbose);
+	gCmdArgs.assetsDir = "./WfAssets";
+	
 	fflush(stdout);
 	if (r)
 	{
