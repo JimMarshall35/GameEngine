@@ -261,6 +261,7 @@ hSprite At_AddSprite(const char* imgPath, int topLeftXPx, int topLeftYPx, int wi
 	Atlas* pAtlas = GetCurrentAtlas();
 	if (!pAtlas || img == NULL_HIMAGE)
 	{
+		Log_Error("At_AddSprite atlas, %p, img %i, imgPath %s", pAtlas, img, imgPath);
 		return NULL_HSPRITE;
 	}
 	AtlasSprite sprite;
