@@ -19,15 +19,9 @@ HImage IR_RegisterImagePath(const char* path)
     HImage i = NULL_HIMAGE;
     struct ImageFile imagef;
     memset(&imagef, 0, sizeof(struct ImageFile));
-    int bufsize = strlen(path) + 2 + strlen(gCmdArgs.assetsDir);
+    int bufsize = strlen(path) + 1;
     imagef.path = malloc(bufsize);
-    if (!imagef.path)
-    {
-        Log_Error("IR_RegisterImagePath malloc failed");
-        return i;
-    }
-    cwk_path_join(gCmdArgs.assetsDir, path, imagef.path, bufsize); 
-    Log_Info("IR_RegisterImagePath registering image file %s", imagef.path);
+    strcpy(imagef.path, path);
     gImageFiles = VectorPush(gImageFiles, &imagef);
     i = VectorSize(gImageFiles) - 1;
     return i;
@@ -35,7 +29,6 @@ HImage IR_RegisterImagePath(const char* path)
 
 HImage IR_LookupHandleByPath(const char* path)
 {
-    Log_Info("IR_LookupHandleByPath gImageFiles size %i", VectorSize(gImageFiles));
     for (int i = 0; i < VectorSize(gImageFiles); i++)
     {
         if (strcmp(gImageFiles[i].path, path) == 0)
@@ -43,7 +36,7 @@ HImage IR_LookupHandleByPath(const char* path)
             return i;
         }
     }
-    return NULL_HIMAGE;
+    return IR_RegisterImagePath(path);
 }
 
 bool IR_IsImageLoaded(HImage hImage)
@@ -106,7 +99,6 @@ bool IR_LoadImageSync(HImage hImage, VECTOR(struct ImageLoadError) outErrors)
         Log_Error("Image %i already loaded!", hImage);
         return false;
     }
-    //stbi_set_flip_vertically_on_load(true);
     int x, y, n;
     u8* data = stbi_load(pIF->path, &x, &y, &n, 4);
     if (!data)
@@ -125,41 +117,6 @@ void IR_InitImageRegistry(const char* jsonPath)
 {
     Log_Verbose("IR_InitImageRegistry path: %s", jsonPath);
     gImageFiles = NEW_VECTOR(struct ImageFile);
-    int size = 0;
-    char* data = NULL;
-    if (jsonPath == NULL)
-    {
-        data = LoadFile("./WfAssets/ImageFiles.json", &size);
-    }
-    else
-    {
-        data = LoadFile(jsonPath, &size);
-    }
-    
-    if (!data)
-    {
-        Log_Error("IR_InitImageRegistry can't load config file");
-        return;
-    }
-    cJSON* pJSON = cJSON_ParseWithLength(data, size);
-    if (!pJSON)
-    {
-        free(data);
-        Log_Error("IR_InitImageRegistry can't parse config file");
-        return;
-    }
-
-    cJSON* pImgReg = cJSON_GetObjectItem(pJSON, "ImageFileRegistry");
-    for (int i = 0; i < cJSON_GetArraySize(pImgReg); i++)
-    {
-        cJSON* pItem = cJSON_GetArrayItem(pImgReg, i);
-        const char* path = pItem->valuestring;
-        IR_RegisterImagePath(path);
-    }
-
-    //cJSON_Delete(pJSON);
-    free(data);
-
 }
 
 void IR_DestroyImageRegistry()
