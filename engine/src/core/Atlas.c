@@ -977,6 +977,7 @@ hAtlas At_EndAtlasEx(struct DrawContext* pDC, struct EndAtlasOptions* pOptions)
 	}
 	size_t numSprites = VectorSize(pAtlas->sprites);
 	size_t numSpritesFromFonts = CountTotalSpritesInFonts(pAtlas);
+	Log_Info("num sprites: %i num sprites from atlas: %i", numSprites, numSpritesFromFonts);
 	if (numSprites + numSpritesFromFonts <= 0)
 	{
 		Log_Error("No Sprites!");
