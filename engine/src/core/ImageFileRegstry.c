@@ -34,6 +34,7 @@ HImage IR_RegisterImagePath(const char* path)
 
 HImage IR_LookupHandleByPath(const char* path)
 {
+    Log_Info("IR_LookupHandleByPath gImageFiles size %i", VectorSize(gImageFiles));
     for (int i = 0; i < VectorSize(gImageFiles); i++)
     {
         if (strcmp(gImageFiles[i].path, path) == 0)
