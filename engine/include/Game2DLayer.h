@@ -93,6 +93,8 @@ struct TileMap
 	struct TilemapRenderData* pRenderData;
 };
 
+typedef void(*MapGeneratorFn)(struct TileMap* pTileMap, DrawContext* pDC, hAtlas atlas, struct GameLayer2DData* pData, void* pUser);
+
 struct GameLayer2DData
 {
 	/** @brief for convenience, a reference back to the layer */
@@ -239,7 +241,10 @@ struct GameLayer2DData
 
 	/// @brief handler for timer that calls G2D_Enqueue_Worldstate_Packet
 	HTimer hNetworkStateUpdateTimer;
+
+	MapGeneratorFn Generator;
 };
+
 
 struct Game2DLayerOptions
 {
@@ -247,6 +252,8 @@ struct Game2DLayerOptions
 	const char* atlasFilePath;
 	
 	const char* levelFilePath;
+
+	MapGeneratorFn Generator;
 	
 };
 

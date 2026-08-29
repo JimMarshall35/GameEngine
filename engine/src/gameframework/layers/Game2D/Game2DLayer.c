@@ -667,6 +667,12 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 	{
 		pData->preLoadLevelFn(pData);
 	}
+	if(pData->Generator != NULL)
+	{
+		pData->Generator(&pData->tilemap, pDC, pData->hAtlas, pData, NULL);
+		pData->bLoaded = true;
+		return;
+	}
 	if(NW_GetRole() == GR_Client)
 	{
 		LoadLevelDataFromServer(&pData->tilemap, pDC, pData->hAtlas, pData);
@@ -833,6 +839,8 @@ void Game2DLayer_Get(struct GameFrameworkLayer* pLayer, struct Game2DLayerOption
 	pData->bCurrentLocationIsDirty = false;
 
 	pData->timerPool = TP_InitTimerPool(16);
+
+	pData->Generator = pOptions->Generator;
 }
 
 void Game2DLayer_SaveLevelFile(struct GameLayer2DData* pData, const char* outputFilePath)
