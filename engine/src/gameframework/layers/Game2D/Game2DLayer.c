@@ -67,7 +67,7 @@ static void LoadLevelDataV1(struct TileMap* pTileMap, struct BinarySerializer* p
 		layer.type = type;
 		switch(type)
 		{
-		case 1: // tile layer
+		case TilemapType_Tile:
 			Log_Verbose("Deserializing tile layer...");
 			u32 width, height, x, y, compression, tw, th;
 			BS_DeSerializeU32(&width, pBS);
@@ -97,7 +97,7 @@ static void LoadLevelDataV1(struct TileMap* pTileMap, struct BinarySerializer* p
 				break;
 			}
 			break;
-		case 2: // object layer
+		case TilemapType_Entity:
 			layer.bIsObjectLayer = true;
 			BS_DeSerializeU32((u32*)&layer.drawOrder, pBS);
 			Et2D_SerializeEntities(&pData->entities, pBS, pData, objectLayer++);

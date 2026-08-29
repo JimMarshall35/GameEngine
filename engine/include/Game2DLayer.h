@@ -72,6 +72,12 @@ enum ObjectLayer2DDrawOrder
 	DrawOrder_Index	
 };
 
+enum TileMapLayerType
+{
+	TilemapType_Tile  = 1,
+	TilemapType_Entity,	
+};
+
 struct TileMapLayer
 {
 	struct TilemapLayerRenderData* pRenderData;
