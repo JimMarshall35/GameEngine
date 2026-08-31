@@ -434,6 +434,11 @@ static void OutputTilemapLayerVertices(
 	vec2 viewportBR
 )
 {
+	if(pLayer->tileWidthPx == 0 || pLayer->tileHeightPx == 0)
+	{
+		return;
+	}
+
 	VECTOR(Worldspace2DVert) outVert = *outVerts;
 	VECTOR(VertIndexT) outInd = *outInds;
 
