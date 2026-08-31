@@ -99,7 +99,7 @@ struct TileMap
 	struct TilemapRenderData* pRenderData;
 };
 
-typedef void(*MapGeneratorFn)(struct TileMap* pTileMap, DrawContext* pDC, hAtlas atlas, struct GameLayer2DData* pData, void* pUser);
+typedef void(*MapGeneratorFn)(struct TileMap* pTileMap, DrawContext* pDC, hAtlas atlas, struct GameLayer2DData* pData, void* pUser, struct Entity2DCollection* pEntities);
 
 struct GameLayer2DData
 {

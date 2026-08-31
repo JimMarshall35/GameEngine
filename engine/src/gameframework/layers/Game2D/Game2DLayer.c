@@ -674,7 +674,8 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 	}
 	if(pData->Generator != NULL)
 	{
-		pData->Generator(&pData->tilemap, pDC, pData->hAtlas, pData, pData->pGeneratorUserData);
+		
+		pData->Generator(&pData->tilemap, pDC, pData->hAtlas, pData, pData->pGeneratorUserData, &pData->entities);
 		pData->bLoaded = true;
 		return;
 	}
