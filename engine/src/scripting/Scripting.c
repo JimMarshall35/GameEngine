@@ -758,3 +758,21 @@ void Sc_UnRefTable(int ref)
 {
 	luaL_unref(gL, LUA_REGISTRYINDEX, ref);
 }
+
+int Sc_CallGlobalFunc(const char* funcName, struct ScriptCallArgument* pArgs, int numArgs)
+{
+	int rVal = 0;
+	lua_getglobal(gL, funcName);
+	if (lua_isfunction(gL, -1))
+	{
+		PushFunctionCallArgsOntoStack(pArgs, numArgs);
+
+		lua_pcall(gL, numArgs, 0, 0); // now call the function
+	}
+	else
+	{
+		Log_Error("Sc_CallGlobalFunc funcName '%s' was not a function, it was type '%s'", funcName, GetTypeOnTopOfStack());
+	}
+	lua_settop(gL, 0);
+	return rVal;
+}

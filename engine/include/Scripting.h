@@ -51,6 +51,8 @@ bool Sc_OpenFile(const char* path);
 /// @return key to the table returned, stored in the registry table. 0 if failed
 int Sc_CallGlobalFuncReturningTableAndStoreResultInReg(const char* funcName, struct ScriptCallArgument* pArgs, int numArgs);
 
+int Sc_CallGlobalFunc(const char* funcName, struct ScriptCallArgument* pArgs, int numArgs);
+
 void Sc_CallFuncInRegTableEntryTable(int regIndex, const char* funcName, struct ScriptCallArgument* pArgs, int numArgs, int numReturnVals);
 
 void Sc_CallFuncInRegTableEntry(int regIndex, struct ScriptCallArgument* pArgs, int numArgs, int numReturnVals, int selfRegIndex);
