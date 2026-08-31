@@ -20,6 +20,7 @@
 #include "Game2DLayerNetwork.h"
 #include "main.h"
 #include "cwalk.h"
+#include <math.h>
 
 int gTilesRendered = 0;
 
@@ -661,6 +662,40 @@ static void Input(struct GameFrameworkLayer* pLayer, InputContext* context)
 	
 }
 
+/// @brief Not a robust or in any way a good implementation
+/// @param layers 
+/// @param outPos 
+/// @param outDims 
+static void FindQuadtreeDims(VECTOR(struct TileMapLayer) layers, vec2 outPos, vec2 outDims)
+{
+	outPos[0] = INFINITY;
+	outPos[1] = INFINITY;
+
+	outDims[0] = -INFINITY;
+	outDims[1] = -INFINITY;
+
+	for(int i = 0; i < VectorSize(layers); i++)
+	{
+		struct TileMapLayer* pLayer = &layers[i];
+		if(pLayer->transform.position[0] < outPos[0])
+		{
+			outPos[0] = pLayer->transform.position[0];
+		}
+		if(pLayer->transform.position[1] < outPos[1])
+		{
+			outPos[1] = pLayer->transform.position[1];
+		}
+		if(pLayer->widthTiles > outDims[0])
+		{
+			outDims[0] = pLayer->widthTiles;
+		}
+		if(pLayer->heightTiles > outDims[1])
+		{
+			outDims[1] = pLayer->heightTiles;
+		}
+	}
+}
+
 static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 {
 	struct BinarySerializer bs;
@@ -676,6 +711,15 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 	{
 		
 		pData->Generator(&pData->tilemap, pDC, pData->hAtlas, pData, pData->pGeneratorUserData, &pData->entities);
+		vec2 pos, dims;
+		FindQuadtreeDims(pData->tilemap.layers, pos, dims);
+		struct Entity2DQuadTreeInitArgs initArgs = {
+			.x = pos[0], .y = pos[1],
+			.w = dims[0],
+			.h = dims[1]
+		};
+		pData->hEntitiesQuadTree = GetEntity2DQuadTree(&initArgs);
+
 		pData->bLoaded = true;
 		return;
 	}
