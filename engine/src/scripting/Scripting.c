@@ -767,7 +767,12 @@ int Sc_CallGlobalFunc(const char* funcName, struct ScriptCallArgument* pArgs, in
 	{
 		PushFunctionCallArgsOntoStack(pArgs, numArgs);
 
-		lua_pcall(gL, numArgs, 0, 0); // now call the function
+		int status = lua_pcall(gL, numArgs, 0, 0); // now call the function
+		if (status != LUA_OK) {
+			Log_Error("Sc_CallGlobalFunc runtime error: %s\n", lua_tostring(gL, -1));
+			lua_pop(gL, 1);
+			return -1;
+		}
 	}
 	else
 	{
