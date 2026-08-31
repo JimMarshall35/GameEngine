@@ -669,7 +669,7 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 	}
 	if(pData->Generator != NULL)
 	{
-		pData->Generator(&pData->tilemap, pDC, pData->hAtlas, pData, NULL);
+		pData->Generator(&pData->tilemap, pDC, pData->hAtlas, pData, pData->pGeneratorUserData);
 		pData->bLoaded = true;
 		return;
 	}
@@ -841,6 +841,8 @@ void Game2DLayer_Get(struct GameFrameworkLayer* pLayer, struct Game2DLayerOption
 	pData->timerPool = TP_InitTimerPool(16);
 
 	pData->Generator = pOptions->Generator;
+
+	pData->pGeneratorUserData = pOptions->pGeneratorUserData;
 }
 
 void Game2DLayer_SaveLevelFile(struct GameLayer2DData* pData, const char* outputFilePath)

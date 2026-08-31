@@ -249,6 +249,8 @@ struct GameLayer2DData
 	HTimer hNetworkStateUpdateTimer;
 
 	MapGeneratorFn Generator;
+
+	void* pGeneratorUserData;
 };
 
 
@@ -261,6 +263,7 @@ struct Game2DLayerOptions
 
 	MapGeneratorFn Generator;
 	
+	void* pGeneratorUserData;
 };
 
 void TilemapLayer_GetTLBR(vec2 tl, vec2 br, struct TileMapLayer* pTMLayer);
