@@ -76,6 +76,7 @@ void MakeInto2DRectStaticColliderEntity(struct Entity2D* pOutEnt,float w, float 
     pOutEnt->components[pOutEnt->numComponents++] = cmp;
     pOutEnt->bSerializeToDisk = true;
     pOutEnt->bSerializeToNetwork = true;
+    SetStaticColliderCallbacks(pOutEnt);
 }
 
 void DeSerialize2DRectStaticColliderEntityV1(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
@@ -84,7 +85,6 @@ void DeSerialize2DRectStaticColliderEntityV1(struct BinarySerializer* bs, struct
     BS_DeSerializeFloat(&w, bs);
     BS_DeSerializeFloat(&h, bs);
     MakeInto2DRectStaticColliderEntity(pOutEnt, w, h);
-    SetStaticColliderCallbacks(pOutEnt);
 }
 
 void DeSerialize2DRectStaticColliderEntity(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
