@@ -6,6 +6,8 @@
 #include "DrawContext.h"
 #include "InputContext.h"
 #include "Log.h"
+#include "Entities.h"
+#include "EngineUtils.h"
 
 void StaticColliderOnInitFn(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, DrawContext* pDrawCtx, InputContext* pInputCtx)
 {
@@ -53,11 +55,8 @@ void SetStaticColliderCallbacks(struct Entity2D* pOutEnt)
     pOutEnt->getBB = &StaticCollider2DGetBoundingBox;
 }
 
-void DeSerialize2DRectStaticColliderEntityV1(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
+void MakeInto2DRectStaticColliderEntity(struct Entity2D* pOutEnt,float w, float h)
 {
-    float w, h;
-    BS_DeSerializeFloat(&w, bs);
-    BS_DeSerializeFloat(&h, bs);
     struct Component2D cmp = 
     {
         .type = ETE_StaticCollider,
@@ -77,6 +76,14 @@ void DeSerialize2DRectStaticColliderEntityV1(struct BinarySerializer* bs, struct
     pOutEnt->components[pOutEnt->numComponents++] = cmp;
     pOutEnt->bSerializeToDisk = true;
     pOutEnt->bSerializeToNetwork = true;
+}
+
+void DeSerialize2DRectStaticColliderEntityV1(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
+{
+    float w, h;
+    BS_DeSerializeFloat(&w, bs);
+    BS_DeSerializeFloat(&h, bs);
+    MakeInto2DRectStaticColliderEntity(pOutEnt, w, h);
     SetStaticColliderCallbacks(pOutEnt);
 }
 
@@ -126,10 +133,8 @@ struct EntitySerializerPair Et2D_Get2DRectStaticColliderSerializerPair()
     return gPairRect;
 }
 
-void DeSerialize2DCircleStaticColliderEntityV1(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
+void MakeInto2DCircleStaticColliderEntity(struct Entity2D* pOutEnt, float radius)
 {
-    float r;
-    BS_DeSerializeFloat(&r, bs);
     struct Component2D cmp = 
     {
         .type = ETE_StaticCollider,
@@ -142,12 +147,19 @@ void DeSerialize2DCircleStaticColliderEntityV1(struct BinarySerializer* bs, stru
             .type = PBT_Circle,
             .data.circle = {
                 .center = { pOutEnt->transform.position[0], pOutEnt->transform.position[1] },
-                .radius = r
+                .radius = radius
             }
         }
     };
     pOutEnt->components[pOutEnt->numComponents++] = cmp;
     SetStaticColliderCallbacks(pOutEnt);
+}
+
+void DeSerialize2DCircleStaticColliderEntityV1(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
+{
+    float r;
+    BS_DeSerializeFloat(&r, bs);
+    MakeInto2DCircleStaticColliderEntity(pOutEnt, r);
 }
 
 void DeSerialize2DCircleStaticColliderEntity(struct BinarySerializer* bs, struct Entity2D* pOutEnt, struct GameLayer2DData* pData)
@@ -241,3 +253,26 @@ struct EntitySerializerPair Et2D_Get2DPolygonStaticColliderSerializerPair()
     return pPairPoly;
 }
 
+HEntity2D Et2D_AddRectangularStaticColliderEntity(struct Entity2DCollection* pEntities, float x, float y, float w, float h)
+{
+    struct Entity2D ent;
+    ZeroMemory(&ent, sizeof(struct Entity2D));
+    ent.transform.position[0] = x;
+    ent.transform.position[1] = y;
+    Et2D_PopulateCommonHandlers(&ent);
+    MakeInto2DRectStaticColliderEntity(&ent, w, h);
+    return Et2D_AddEntity(pEntities, &ent);
+
+}
+
+HEntity2D Et2D_AddCircularStaticColliderEntity(struct Entity2DCollection* pEntities, float x, float y, float r)
+{
+    struct Entity2D ent;
+    ZeroMemory(&ent, sizeof(struct Entity2D));
+    ent.transform.position[0] = x;
+    ent.transform.position[1] = y;
+    Et2D_PopulateCommonHandlers(&ent);
+    MakeInto2DCircleStaticColliderEntity(&ent, r);
+    return Et2D_AddEntity(pEntities, &ent);
+
+}
