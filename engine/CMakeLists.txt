@@ -15,20 +15,6 @@ set_property(CACHE STARDEW_GL_API_TYPE PROPERTY STRINGS
     OPENGL OPENGLES
 )
 
-if(ENABLE_PROFILING)
-    # via Conan or FetchContent, however you're pulling Tracy in
-    FetchContent_Declare (
-      tracy
-      GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-      GIT_TAG master
-      GIT_SHALLOW TRUE
-      GIT_PROGRESS TRUE
-    )
-    FetchContent_MakeAvailable ( tracy )
-    target_link_libraries ( StardewEngine PUBLIC TracyClient )
-    target_compile_definitions(StardewEngine PRIVATE TRACY_ENABLE)
-endif()
-
 if(STARDEW_PLATFORM STREQUAL "GLFW3")
   find_package(glfw3 REQUIRED)
 elseif(STARDEW_PLATFORM STREQUAL "SDL2")
@@ -73,6 +59,22 @@ target_link_libraries(StardewEngine PUBLIC box2d)
 target_link_libraries(StardewEngine PUBLIC Netcode)
 
 target_link_libraries(StardewEngine PUBLIC ZzFX)
+
+
+if(ENABLE_PROFILING)
+    # via Conan or FetchContent, however you're pulling Tracy in
+    FetchContent_Declare (
+      tracy
+      GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+      GIT_TAG master
+      GIT_SHALLOW TRUE
+      GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable ( tracy )
+    target_link_libraries ( StardewEngine PUBLIC TracyClient )
+    target_compile_definitions(StardewEngine PRIVATE TRACY_ENABLE)
+endif()
+
 
 add_subdirectory(lib/cglm-0.9.6 EXCLUDE_FROM_ALL)
 
