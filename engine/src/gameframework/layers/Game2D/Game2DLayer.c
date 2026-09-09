@@ -303,7 +303,7 @@ void G2D_SaveLevelDataInternal(struct GameLayer2DData* pData, struct BinarySeria
 
 static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 {
-	ZONE(ctx)
+	ZONE(tracy_ctx)
 	switch(NW_GetRole())
 	{
 	case GR_Client:
@@ -345,7 +345,7 @@ static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 	
 
 	Et2D_DoEntityMessagesQueue(&pData->entities, pLayer);
-	ZONE_END(ctx)
+	ZONE_END(tracy_ctx)
 }
 
 void OutputSpriteVertices(
@@ -821,7 +821,7 @@ static bool NetworkUpdateWorldstateCallback(struct SDTimer* pTimer)
 
 void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)
 {
-	ZONE(ctx)
+	ZONE(tracy_ctx)
 	struct GameLayer2DData* pData = pLayer->userData;
 	pData->pLayer = pLayer;
 	Et2D_InitCollection(&pData->entities);
@@ -862,7 +862,7 @@ void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawCont
 		};
 		pData->hNetworkStateUpdateTimer = TP_GetTimer(&pData->timerPool, &timerDef);
 	}
-	ZONE_END(ctx)
+	ZONE_END(tracy_ctx)
 }
 
 void Game2DLayer_OnPop(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)

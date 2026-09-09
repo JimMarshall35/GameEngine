@@ -317,7 +317,7 @@ static bool SendMouseDownAndFocus(struct WidgetMouseInfo* info, HWidget hWidget,
 
 static void Input(struct GameFrameworkLayer* pLayer, InputContext* ctx)
 {
-	ZONE(ctx)
+	ZONE(tracy_ctx)
 	static VECTOR(HWidget) pWidgetsHovverred = NULL;
 	static VECTOR(HWidget) pWidgetsHovverredLastFrame = NULL;
 	static VECTOR(HWidget) pWidgetsEntered = NULL;
@@ -489,7 +489,7 @@ static void Input(struct GameFrameworkLayer* pLayer, InputContext* ctx)
 	{
 		Sc_CallFuncInRegTableEntryTable(pUIData->hViewModel, "OnInput", NULL, 0, 0);
 	}
-	ZONE_END(ctx)
+	ZONE_END(tracy_ctx)
 
 }
 

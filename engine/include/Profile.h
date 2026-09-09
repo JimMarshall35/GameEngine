@@ -2,7 +2,7 @@
 #define PROFILE_H
 
 #ifdef TRACY_ENABLE
-    #include "TracyC.h"
+    #include "tracy/TracyC.h"
     #define ZONE(ctx)         TracyCZone(ctx, 1)
     #define ZONE_N(ctx, name) TracyCZoneN(ctx, name, 1)
     #define ZONE_END(ctx)     TracyCZoneEnd(ctx)

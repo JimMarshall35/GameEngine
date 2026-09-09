@@ -62,7 +62,8 @@ target_link_libraries(StardewEngine PUBLIC ZzFX)
 
 
 if(ENABLE_PROFILING)
-    # via Conan or FetchContent, however you're pulling Tracy in
+    set(TRACY_ENABLE ON CACHE BOOL "" FORCE)   # <-- Tracy's own build option, not just your define
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     FetchContent_Declare (
       tracy
       GIT_REPOSITORY https://github.com/wolfpld/tracy.git
