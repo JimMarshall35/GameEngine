@@ -157,6 +157,7 @@ bool Platform_ShouldWindowClose()
     ZONE(ctx)
     bool b = glfwWindowShouldClose(gWindow);
     ZONE_END(ctx)
+    return b;
 }
 
 void Platform_SwapBuffers()
