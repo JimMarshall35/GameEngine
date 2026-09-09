@@ -6,6 +6,7 @@
 #include "KeyCodes.h"
 #include "GameFramework.h"
 #include "Log.h"
+#include "Profile.h"
 
 void Common_FramebufferSizeChangeHandler(int width, int height)
 {
@@ -24,31 +25,42 @@ GLFWwindow* gWindow = NULL;
 
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
+    ZONE(ctx)
     Common_FramebufferSizeChangeHandler(width, height);
+    ZONE_END(ctx)
 }
 
 void MouseCallback(GLFWwindow* window, double xposIn, double yposIn)
 {
+    ZONE(ctx)
     In_RecieveMouseMove(GetInputContext(), xposIn, yposIn);
+    ZONE_END(ctx)
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    ZONE(ctx)
     In_RecieveScroll(GetInputContext(), xoffset, yoffset);
+    ZONE_END(ctx)
 }
 
 void MouseBtnCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    ZONE(ctx)
     In_RecieveMouseButton(GetInputContext(), button, action, mods);
+    ZONE_END(ctx)
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    ZONE(ctx)
     In_RecieveKeyboardKey(GetInputContext(), key, scancode, action, mods);
+    ZONE_END(ctx)
 }
 
 void joystick_callback(int jid, int event)
 {
+    ZONE(ctx)
     if (event == GLFW_CONNECTED)
     {
         In_SetControllerPresent(jid);
@@ -57,12 +69,14 @@ void joystick_callback(int jid, int event)
     {
         In_SetControllerPresent(-1);
     }
+    ZONE_END(ctx)
 }
 
 int Platform_InitWindow()
 {
      // glfw: initialize and configure
     // ------------------------------
+    ZONE(ctx)
     glfwInit();
     Log_Verbose("glfwInit");
 #if GAME_GL_API_TYPE == GAME_GL_API_TYPE_ES
@@ -97,6 +111,7 @@ int Platform_InitWindow()
         /*std::cout << "Failed to create GLFW window" << std::endl;*/
         Log_Error("Failed to create GLFW window");
         glfwTerminate();
+        ZONE_END(ctx)
         return -1;
     }
 
@@ -121,6 +136,7 @@ int Platform_InitWindow()
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         Log_Verbose("Failed to initialize GLAD");
+        ZONE_END(ctx)
         return -1;
     }
 #elif GAME_GL_API_TYPE == GAME_GL_API_TYPE_ES
@@ -128,35 +144,48 @@ int Platform_InitWindow()
     if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress))
     {
         Log_Verbose("Failed to initialize GLAD");
+        ZONE_END(ctx)
         return -1;
     }
 #endif
+    ZONE_END(ctx)
     return 0;
 }
 
 bool Platform_ShouldWindowClose()
 {
-    return glfwWindowShouldClose(gWindow);
+    ZONE(ctx)
+    bool b = glfwWindowShouldClose(gWindow);
+    ZONE_END(ctx)
 }
 
 void Platform_SwapBuffers()
 {
+    ZONE(ctx)
     glfwSwapBuffers(gWindow);
+    ZONE_END(ctx)
 }
 
 double Platform_GetElapsedSeconds()
 {
-    return glfwGetTime();
+    ZONE(ctx)
+    double t = glfwGetTime();
+    ZONE_END(ctx)
+    return t;
 }
 
 void Platform_DeInit()
 {
+    ZONE(ctx)
     glfwTerminate();
+    ZONE_END(ctx)
 }
 
 void Platform_PollEvents()
 {
+    ZONE(ctx)
     glfwPollEvents();
+    ZONE_END(ctx)
 }
 
 #elif STARDEW_PLATFORM == STARDEW_PLATFORM_SDL2
@@ -172,9 +201,11 @@ bool gShouldWIndowClose = false;
 
 int Platform_InitWindow()
 {
+    ZONE(ctx)
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
         Log_Error("Failed to init SDL");
+        ZONE_END(ctx)
         return -1;
     }
 
@@ -204,12 +235,14 @@ int Platform_InitWindow()
     if(gWindow == NULL)
     {
         Log_Error("SDL_CreateWindow Failed");
+        ZONE_END(ctx)
         return -1;
     }
     gOpenglContext = SDL_GL_CreateContext(gWindow);
     if(gOpenglContext == NULL)
     {
         Log_Error("SDL_GL_CreateContext Failed");
+        ZONE_END(ctx)
         return -1;
     }
     
@@ -218,6 +251,7 @@ int Platform_InitWindow()
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
         Log_Verbose("Failed to initialize GLAD");
+        ZONE_END(ctx)
         return -1;
     }
 #elif GAME_GL_API_TYPE == GAME_GL_API_TYPE_ES
@@ -225,11 +259,12 @@ int Platform_InitWindow()
     if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress))
     {
         Log_Verbose("Failed to initialize GLAD");
+        ZONE_END(ctx)
         return -1;
     }
 #endif
 
-
+    ZONE_END(ctx)
     return 0;
 }
 
@@ -240,13 +275,17 @@ bool Platform_ShouldWindowClose()
 
 void Platform_SwapBuffers()
 {
+    ZONE(ctx)
     SDL_GL_SwapWindow(gWindow);
+    ZONE_END(ctx)
 }
 
 double Platform_GetElapsedSeconds()
 {
+    ZONE(ctx)
     Uint32 ms = SDL_GetTicks();
     double seconds = ms / 1000.0;
+    ZONE_END(ctx)
     return seconds;
 }
 
@@ -392,6 +431,7 @@ static int SDLScancodeToStardewKey(SDL_Scancode sc)
 
 void Platform_PollEvents()
 {
+    ZONE(ctx)
     SDL_Event event;
 
     while (SDL_PollEvent(&event))
@@ -442,6 +482,7 @@ void Platform_PollEvents()
             break;
         }
     }
+    ZONE_END(ctx)
 }
 
 

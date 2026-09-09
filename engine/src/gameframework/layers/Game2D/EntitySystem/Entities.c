@@ -16,6 +16,7 @@
 #include "Game2DLayerNetwork.h"
 #include "DynArray.h"
 #include "EngineUtils.h"
+#include "Profile.h"
 
 static VECTOR(struct EntitySerializerPair) pSerializers = NULL;
 
@@ -24,20 +25,25 @@ static OBJECT_POOL(struct DynamicEntityListItem) gDynamicListPool = NULL;
 
 bool DestroyCollectionItr(struct Entity2D* pEnt, int i, void* pUser)
 {
+    ZONE(ctx)
     struct GameFrameworkLayer* pLayer = pUser;
     pEnt->onDestroy(pEnt, pLayer);
+    ZONE_END(ctx)
     return true;
 }
 
 void Et2D_DestroyCollection(struct Entity2DCollection* pCollection, struct GameFrameworkLayer* pLayer)
 {
+    ZONE(ctx)
     Et2D_IterateEntities(pCollection, &DestroyCollectionItr, pLayer);    
     pCollection->pEntityPool = FreeObjectPool(pCollection->pEntityPool);
+    ZONE_END(ctx)
 }
 
 
 void Et2D_InitCollection(struct Entity2DCollection* pCollection)
 {
+    ZONE(ctx)
     pCollection->gEntityListHead = NULL_HANDLE;
     pCollection->gEntityListTail = NULL_HANDLE;
     pCollection->dynamicEntities.hDynamicListHead = NULL_HANDLE;
@@ -49,10 +55,12 @@ void Et2D_InitCollection(struct Entity2DCollection* pCollection)
     pCollection->messageQueue = NEW_VECTOR(struct EntityToEntityMessage);
     pCollection->messageQueue = VectorResize(pCollection->messageQueue, 256);
     pCollection->messageQueue = VectorClear(pCollection->messageQueue);
+    ZONE_END(ctx)
 }
 
 void Entity2DOnInit(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, DrawContext* pDrawCtx, InputContext* pInputCtx)
 {
+    ZONE(ctx)
     Co_InitComponents(pEnt, pLayer);
     struct GameLayer2DData* pData = pLayer->userData;
     if(pEnt->bKeepInQuadtree)
@@ -63,21 +71,28 @@ void Entity2DOnInit(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, Dr
     {
         pEnt->hDynamicListRef = DynL_AddEntity(&pData->entities.dynamicEntities, pEnt->thisEntity);
     }
+    ZONE_END(ctx)
 }
 
 void Entity2DUpdate(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, float deltaT)
 {
+    ZONE(ctx)
     Co_UpdateComponents(pEnt, pLayer, deltaT);
+    ZONE_END(ctx)
 }
 
 void Entity2DUpdatePostPhysics(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, float deltaT)
 {
+    ZONE(ctx)
     Co_Entity2DUpdatePostPhysicsFn(pEnt, pLayer, deltaT);
+    ZONE_END(ctx)
 }
 
 void Entity2DDraw(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, struct Transform2D* pCam, VECTOR(Worldspace2DVert)* outVerts, VECTOR(VertIndexT)* outIndices, VertIndexT* pNextIndex)
 {
+    ZONE(ctx)
     Co_DrawComponents(pEnt, pLayer, pCam, outVerts, outIndices, pNextIndex);
+    ZONE_END(ctx)
 }
 
 void Entity2DDrawDebugLines(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, struct Transform2D* pCam, VECTOR(WorldspaceLineVertex)* outVerts)
@@ -88,11 +103,14 @@ void Entity2DDrawDebugLines(struct Entity2D* pEnt, struct GameFrameworkLayer* pL
 
 void Entity2DInput(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, InputContext* context)
 {
+    ZONE(ctx)
     Co_InputComponents(pEnt, pLayer, context);
+    ZONE_END(ctx)
 }
 
 void Entity2DOnDestroy(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer)
 {
+    ZONE(ctx)
     Co_DestroyComponents(pEnt, pLayer);
     struct GameLayer2DData* pData = pLayer->userData;
     
@@ -104,10 +122,12 @@ void Entity2DOnDestroy(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer)
     {
         Entity2DQuadTree_Remove(pData->hEntitiesQuadTree, pEnt->hQuadTreeRef);
     }
+    ZONE_END(ctx)
 }
 
 void TilesComponentGetBoundingBox(struct TilesComponent* tiles, struct TileMap* pTilemap, vec2 tl, vec2 br)
 {
+    ZONE(ctx)
     tl[0] = INFINITY;
     tl[1] = INFINITY;
     br[0] = -INFINITY;
@@ -141,10 +161,12 @@ void TilesComponentGetBoundingBox(struct TilesComponent* tiles, struct TileMap* 
             br[1] = tileBR[1];
         }
     }
+    ZONE_END(ctx)
 }
 
 void Entity2DGetBoundingBox(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, vec2 outTL, vec2 outBR)
 {
+    ZONE(ctx)
     vec2 bbtl  = {99999999999, 9999999999999};
     vec2 bbbr  = {-99999999999, -9999999999999};
     bool bSet = false;
@@ -199,11 +221,13 @@ void Entity2DGetBoundingBox(struct Entity2D* pEnt, struct GameFrameworkLayer* pL
         outBR[0] = bbbr[0];
         outBR[1] = bbbr[1];
     }
+    ZONE_END(ctx)
 }
 
 #include "NetworkID.h"
 void Et2D_Init(RegisterGameEntitiesFn registerGameEntities)
 {
+    ZONE(ctx)
     pSerializers = NEW_VECTOR(struct EntitySerializerPair);
     pSerializers = VectorClear(pSerializers);
 
@@ -223,10 +247,12 @@ void Et2D_Init(RegisterGameEntitiesFn registerGameEntities)
     {
         registerGameEntities();
     }
+    ZONE_END(ctx)
 }
 
 void Et2D_DestroyEntity(struct GameFrameworkLayer* pLayer, struct Entity2DCollection* pCollection, HEntity2D hEnt)
 {
+    ZONE(ctx)
     struct Entity2D* pEnt = &pCollection->pEntityPool[hEnt];
 
     if(pCollection->gEntityListHead == hEnt)
@@ -253,6 +279,7 @@ void Et2D_DestroyEntity(struct GameFrameworkLayer* pLayer, struct Entity2DCollec
     pEnt->onDestroy(pEnt, pLayer);
     pCollection->gNumEnts--;
     FreeObjectPoolIndex(pCollection->pEntityPool, hEnt);
+    ZONE_END(ctx)
 }
 
 static HEntity2D Et2D_AddEntityBase(struct Entity2DCollection* pCollection, struct Entity2D* pEnt, bool bAssignNetID)
@@ -261,6 +288,7 @@ static HEntity2D Et2D_AddEntityBase(struct Entity2DCollection* pCollection, stru
         - assign new ID at this point if we're the server.
         - if we're the client it might be serialized or it might be "guessed" by the client depending on context
     */
+    ZONE(ctx)
     if(NW_GetRole() == GR_ClientServer && bAssignNetID)
     {
         pEnt->networkID = NetID_GetID();
@@ -290,21 +318,29 @@ static HEntity2D Et2D_AddEntityBase(struct Entity2DCollection* pCollection, stru
         pCollection->gEntityListTail = hEnt;
     }
     pCollection->gNumEnts++;
+    ZONE_END(ctx)
     return hEnt;
 }
 
 HEntity2D Et2D_AddEntityNoNewNetID(struct Entity2DCollection* pCollection, struct Entity2D* pEnt)
 {
-    return Et2D_AddEntityBase(pCollection, pEnt, false);
+    ZONE(ctx)
+    HEntity2D hEnt = Et2D_AddEntityBase(pCollection, pEnt, false);
+    ZONE_END(ctx)
+    return hEnt;
 }
 
 HEntity2D Et2D_AddEntity(struct Entity2DCollection* pCollection, struct Entity2D* pEnt)
 {
-    return Et2D_AddEntityBase(pCollection, pEnt, true);
+    ZONE(ctx)
+    HEntity2D hEnt = Et2D_AddEntityBase(pCollection, pEnt, true);
+    ZONE_END(ctx)    
+    return hEnt;
 }
 
 void Et2D_DeserializeEntityV1Base(struct Entity2DCollection* pCollection, struct BinarySerializer* bs, struct GameLayer2DData* pData, int objectLayer, struct Entity2D* pOutEnt)
 {
+    ZONE(ctx)
     u32 entityType = 0;
     BS_DeSerializeU32(&entityType, bs);
     Log_Verbose("Deserializing entity type: %i", entityType);
@@ -324,11 +360,13 @@ void Et2D_DeserializeEntityV1Base(struct Entity2DCollection* pCollection, struct
     {
         Log_Error("DESERIALIZE: Entity Serializer type %i out of range\n", pOutEnt->type);
     }
+    ZONE_END(ctx)    
 }
 #include "LatinMacros.h"
 
 staticus vacuum DeserializeEntityV1(struct Entity2DCollection* pCollection, struct BinarySerializer* bs, struct GameLayer2DData* pData, int objectLayer)
 {
+    ZONE(ctx)
     vimen(bs->ctx)
     {
     casu SCTX_ToFile:
@@ -357,10 +395,12 @@ staticus vacuum DeserializeEntityV1(struct Entity2DCollection* pCollection, stru
         }
         interruptio;
     }
+    ZONE_END(ctx)    
 }
 
 static void LoadEntitiesV1(struct BinarySerializer* bs, struct GameLayer2DData* pData, struct Entity2DCollection* pCollection, int objectLayer)
 {
+    ZONE(ctx)
     u32 numEntities = 0;
     BS_DeSerializeU32(&numEntities, bs);
     Log_Verbose("numEntities: %i", numEntities);
@@ -368,10 +408,12 @@ static void LoadEntitiesV1(struct BinarySerializer* bs, struct GameLayer2DData* 
     {
         DeserializeEntityV1(pCollection, bs, pData, objectLayer);
     }
+    ZONE_END(ctx)    
 }
 
 static void LoadEntities(struct BinarySerializer* bs, struct GameLayer2DData* pData, struct Entity2DCollection* pCollection, int objectLayer)
 {
+    ZONE(ctx)
     EASSERT(!bs->bSaving);
     u32 version = 0;
     BS_DeSerializeU32(&version, bs);
@@ -385,10 +427,12 @@ static void LoadEntities(struct BinarySerializer* bs, struct GameLayer2DData* pD
         EASSERT(false);
         break;
     }
+    ZONE_END(ctx)    
 }
 
 static u32 NumEntsToSerialize(struct Entity2DCollection* pCollection, struct BinarySerializer* bs)
 {
+    ZONE(ctx)
     int i = 0;
     HEntity2D hOn = pCollection->gEntityListHead;
     while(hOn != NULL_HANDLE)
@@ -417,11 +461,13 @@ static u32 NumEntsToSerialize(struct Entity2DCollection* pCollection, struct Bin
         
         hOn = pOn->nextSibling;
     }
+    ZONE_END(ctx)    
     return i;
 }
 
 void Et2D_SerializeEntityV1Base(struct Entity2D* pOn, struct BinarySerializer* bs, struct GameLayer2DData* pData)
 {
+    ZONE(ctx)
     bool bSerialize = false;
     switch(bs->ctx)
     {
@@ -455,10 +501,12 @@ void Et2D_SerializeEntityV1Base(struct Entity2D* pOn, struct BinarySerializer* b
             Log_Error("Entity Serializer type %i out of range\n", pOn->type);
         }
     }
+    ZONE_END(ctx)    
 }
 
 static void SaveEntities(struct Entity2DCollection* pCollection, struct BinarySerializer* bs, struct GameLayer2DData* pData)
 {
+    ZONE(ctx)
     EASSERT(bs->bSaving);
     BS_SerializeU32(1, bs); /* version number */
     Log_Verbose("Saving %i entities", NumEntsToSerialize(pCollection, bs));
@@ -470,11 +518,13 @@ static void SaveEntities(struct Entity2DCollection* pCollection, struct BinarySe
         Et2D_SerializeEntityV1Base(pOn, bs, pData);
         hOn = pOn->nextSibling;
     }
+    ZONE_END(ctx)
 }
 
 /* both serialize and deserialize */
 void Et2D_SerializeEntities(struct Entity2DCollection* pCollection, struct BinarySerializer* bs, struct GameLayer2DData* pData, int objectLayer)
 {
+    ZONE(ctx)
     if(bs->bSaving)
     {
         SaveEntities(pCollection, bs, pData);
@@ -483,20 +533,25 @@ void Et2D_SerializeEntities(struct Entity2DCollection* pCollection, struct Binar
     {
         LoadEntities(bs, pData, pCollection, objectLayer);
     }
+    ZONE_END(ctx)
 }
 
 void Et2D_RegisterEntityType(u32 typeID, struct EntitySerializerPair* pair)
 {
     //pSerializers = (pSerializers, pair);
+    ZONE(ctx)
     int size = VectorSize(pSerializers);
     EASSERT(size == typeID);
     pSerializers = VectorPush(pSerializers, pair);
+    ZONE_END(ctx)
 }
 
 void Et2D_DeserializeCommon(struct BinarySerializer* bs, struct Entity2D* pOutEnt)
 {
+    ZONE(ctx)
     if(bs->ctx == SCTX_ToNetworkUpdate)
     {
+        ZONE_END(ctx)
         return; /* network updates serialize and deserialize a minimal amount of data */
     }
 
@@ -523,13 +578,16 @@ void Et2D_DeserializeCommon(struct BinarySerializer* bs, struct Entity2D* pOutEn
         Et2D_PopulateCommonHandlers(pOutEnt);
         break;
     }
+    ZONE_END(ctx)
 }
 
 
 void Et2D_SerializeCommon(struct BinarySerializer* bs, struct Entity2D* pInEnt)
 {
+    ZONE(ctx)
     if(bs->ctx == SCTX_ToNetworkUpdate)
     {
+        ZONE_END(ctx)
         return; /* network updates serialize and deserialize a minimal amount of data */
     }
     u32 version = 1;
@@ -548,15 +606,20 @@ void Et2D_SerializeCommon(struct BinarySerializer* bs, struct Entity2D* pInEnt)
     {
         BS_SerializeI32(pInEnt->networkID, bs);
     }
+    ZONE_END(ctx)
 }
 
 struct Entity2D* Et2D_GetEntity(struct Entity2DCollection* pCollection, HEntity2D hEnt)
 {
-    return &pCollection->pEntityPool[hEnt];
+    ZONE(ctx)
+    struct Entity2D* pEnt = &pCollection->pEntityPool[hEnt];
+    ZONE_END(ctx)
+    return pEnt;
 }
 
 void Et2D_IterateEntities(struct Entity2DCollection* pCollection, Entity2DIterator itr, void* pUser)
 {
+    ZONE(ctx)
     HEntity2D hOnEnt = pCollection->gEntityListHead;
     int i = 0;
     while(hOnEnt != NULL_HANDLE)
@@ -567,6 +630,7 @@ void Et2D_IterateEntities(struct Entity2DCollection* pCollection, Entity2DIterat
         pEntity = Et2D_GetEntity(pCollection, hOnEnt);
         hOnEnt = pEntity->nextSibling;
     }
+    ZONE_END(ctx)
 }
 
 float Entity2DGetSortVal(struct Entity2D* pEnt)
@@ -609,6 +673,7 @@ void Et2D_PrintEntitiesInfo(struct Entity2DCollection* pCollection)
 
 void Et2D_DoEntityMessagesQueue(struct Entity2DCollection* pCollection, struct GameFrameworkLayer* pLayer)
 {
+    ZONE(ctx)
     for(int i = 0; i < VectorSize(pCollection->messageQueue); i++)
     {
         struct EntityToEntityMessage* pMsg = &pCollection->messageQueue[i];
@@ -629,9 +694,12 @@ void Et2D_DoEntityMessagesQueue(struct Entity2DCollection* pCollection, struct G
     }
     
     pCollection->messageQueue = VectorClear(pCollection->messageQueue);
+    ZONE_END(ctx)
 }
 
 void Et2D_SendEntity2EntityMsg(struct Entity2DCollection* pCollection, struct EntityToEntityMessage* pMsg)
 {
+    ZONE(ctx)
     pCollection->messageQueue = VectorPush(pCollection->messageQueue, pMsg);
+    ZONE_END(ctx)
 }

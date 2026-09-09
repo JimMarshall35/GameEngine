@@ -4,6 +4,7 @@ project(WarFarmer)
 
 option(NoGTest "NoGTest" OFF)
 option(FlatPakHack "FlatPakHack" OFF)
+option(ENABLE_PROFILING "Enable Tracy profiling" OFF)
 
 add_subdirectory(netcode)
 

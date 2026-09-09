@@ -11,6 +11,7 @@
 #include "Geometry.h"
 #include "WidgetVertexOutputHelpers.h"
 #include "FloatingPointLib.h"
+#include "Profile.h"
 
 static struct WidgetPadding zeroPadding =
 {
@@ -46,6 +47,7 @@ static float GetHeight(struct UIWidget* pWidget, struct UIWidget* pParent)
 /// </summary>
 static void UnionRects(vec2 tl1, vec2 br1, vec2 tl2, vec2 br2)
 {
+	ZONE(ctx)
 	if (tl2[0] < tl1[0])
 	{
 		tl1[0] = tl2[0];
@@ -62,10 +64,12 @@ static void UnionRects(vec2 tl1, vec2 br1, vec2 tl2, vec2 br2)
 	{
 		br1[1] = br2[1];
 	}
+	ZONE_END(ctx)
 }
 
 static void GetChildrenBoundingBox(struct UIWidget* pWidget, vec2 tl, vec2 br)
 {
+	ZONE(ctx)
 	bool bSet = false;
 	HWidget hChild = pWidget->hFirstChild;
 	while (hChild != NULL_HWIDGET)
@@ -88,10 +92,12 @@ static void GetChildrenBoundingBox(struct UIWidget* pWidget, vec2 tl, vec2 br)
 		}
 		UnionRects(tl, br, tl0, br0);
 	}
+	ZONE_END(ctx)
 }
 
 static void SetScroll(struct CanvasData* pData)
 {
+	ZONE(ctx)
 	if (pData->bVSliderActive)
 	{
 		pData->scrollY = pData->sliderV.fVal;
@@ -108,10 +114,12 @@ static void SetScroll(struct CanvasData* pData)
 	{
 		pData->scrollX = 0;
 	}
+	ZONE_END(ctx)
 }
 
 static void SetSliderMinAndMax(struct UIWidget* pWidget, struct CanvasData* pCanvasData)
 {
+	ZONE(ctx)
 	float w = pWidget->fnGetWidth(pWidget, UI_GetWidget(pWidget->hParent)) - (pWidget->padding.paddingRight + pWidget->padding.paddingLeft);
 	float h = pWidget->fnGetHeight(pWidget, UI_GetWidget(pWidget->hParent)) - (pWidget->padding.paddingTop + pWidget->padding.paddingBottom);
 
@@ -131,23 +139,29 @@ static void SetSliderMinAndMax(struct UIWidget* pWidget, struct CanvasData* pCan
 
 	pCanvasData->sliderV.fVal = pCanvasData->sliderV.fMaxVal;
 	pCanvasData->sliderH.fVal = pCanvasData->sliderH.fMaxVal;
+	ZONE_END(ctx)
 }
 
 static void LayoutChildren(struct UIWidget* pWidget, struct UIWidget* pParent)
 {
+	ZONE(ctx)
 	struct CanvasData* pData = pWidget->pImplementationData;
 	SetScroll(pData);
 	RootWidget_LayoutChildren(pWidget, pParent, pData->scrollX, pData->scrollY);
 	GetChildrenBoundingBox(pWidget, pData->contentBB, &pData->contentBB[2]);
+	ZONE_END(ctx)
 }
 
 static void OnDestroy(struct UIWidget* pWidget)
 {
+	ZONE(ctx)
 	free(pWidget->pImplementationData);
+	ZONE_END(ctx)
 }
 
 static bool ContentExceedsSize(struct CanvasData* pCanvasData, struct UIWidget* pWidget, bool* pOutExceedsWidth, bool* pOutExceedsHeight)
 {
+	ZONE(ctx)
 	struct CanvasData* pData = pWidget->pImplementationData;
 	float w = pWidget->fnGetWidth(pWidget, UI_GetWidget(pWidget->hParent)) - (pWidget->padding.paddingRight + pWidget->padding.paddingLeft);
 	float h = pWidget->fnGetHeight(pWidget, UI_GetWidget(pWidget->hParent)) - (pWidget->padding.paddingTop + pWidget->padding.paddingBottom);
@@ -157,21 +171,25 @@ static bool ContentExceedsSize(struct CanvasData* pCanvasData, struct UIWidget* 
 	*pOutExceedsWidth =  !CompareFloat(contentW, w) && contentW > w;
 	*pOutExceedsHeight = !CompareFloat(contentH, h) && contentH > h;
 
+	ZONE_END(ctx)
 	return *pOutExceedsWidth || *pOutExceedsHeight;
 }
 
 void GetClipRegion(GeomRect rect, struct UIWidget* pWidget)
 {
+	ZONE(ctx)
 	float w = pWidget->fnGetWidth(pWidget, UI_GetWidget(pWidget->hParent)) - (pWidget->padding.paddingRight + pWidget->padding.paddingLeft);
 	float h = pWidget->fnGetHeight(pWidget, UI_GetWidget(pWidget->hParent)) - (pWidget->padding.paddingTop + pWidget->padding.paddingBottom);
 	rect[0] = pWidget->left + pWidget->padding.paddingLeft;
 	rect[1] = pWidget->top + pWidget->padding.paddingTop;
 	rect[2] = rect[0] + w;
 	rect[3] = rect[1] + h;
+	ZONE_END(ctx)
 }
 
 static void SetSliderPositionAndDims(struct UIWidget* pWidget, struct CanvasData* pData)
 {
+	ZONE(ctx)
 	if(pData->bUseHSlider || pData->bUseVSlider)
 	{
 		float canvasH = pWidget->fnGetHeight(pWidget, UI_GetWidget(pWidget->hParent));
@@ -193,12 +211,13 @@ static void SetSliderPositionAndDims(struct UIWidget* pWidget, struct CanvasData
 			pData->sliderVTopLeft[1] = canvasTL[1] + pWidget->padding.paddingTop;
 		}
 	}
-	
+	ZONE_END(ctx)
 	
 }
 
 void* CanvasWidget_OnOutputVerts(struct UIWidget* pWidget, VECTOR(WidgetVertex) pOutVerts)
 {
+	ZONE(ctx)
 	struct CanvasData* pCanvasData = pWidget->pImplementationData;
 	bool bExceedsW, bExceedsH;
 	if (ContentExceedsSize(pCanvasData, pWidget, &bExceedsW, &bExceedsH))
@@ -226,11 +245,13 @@ void* CanvasWidget_OnOutputVerts(struct UIWidget* pWidget, VECTOR(WidgetVertex) 
 	{
 		pOutVerts = SliderWidget_OnOutputVerts(pOutVerts, &pCanvasData->sliderH, pCanvasData->sliderHTopLeft[1], pCanvasData->sliderHTopLeft[0], &zeroPadding);
 	}
+	ZONE_END(ctx)
 	return pOutVerts;
 }
 
 static void OnWidgetInit(struct UIWidget* pWidget)
 {
+	ZONE(ctx)
 	struct CanvasData* pCanvasData = pWidget->pImplementationData;
 	LayoutChildren(pWidget, UI_GetWidget(pWidget->hParent));
 	GetChildrenBoundingBox(pWidget, pCanvasData->contentBB, &pCanvasData->contentBB[2]);
@@ -243,7 +264,7 @@ static void OnWidgetInit(struct UIWidget* pWidget)
 			SetSliderMinAndMax(pWidget, pCanvasData);
 		}		
 	}
-
+	ZONE_END(ctx)
 }
 
 static void OnPropertyChanged(struct UIWidget* pThisWidget, struct WidgetPropertyBinding* pBinding)
@@ -254,6 +275,7 @@ static void OnPropertyChanged(struct UIWidget* pThisWidget, struct WidgetPropert
 
 static void MouseButtonDownCallback(struct UIWidget* pWidget, float x, float y, int btn)
 {
+	ZONE(ctx)
 	struct CanvasData* pCanvasData = pWidget->pImplementationData;
 	
 	if (pCanvasData->bUseHSlider && pCanvasData->bHSliderActive)
@@ -286,25 +308,31 @@ static void MouseButtonDownCallback(struct UIWidget* pWidget, float x, float y, 
 			pCanvasData->sliderV.bMouseDown = true;
 		}
 	}
+	ZONE_END(ctx)
 }
 
 static void MouseButtonUpCallback(struct UIWidget* pWidget, float x, float y, int btn)
 {
+	ZONE(ctx)
 	struct CanvasData* pCanvasData = pWidget->pImplementationData;
 
 	pCanvasData->sliderV.bMouseDown = false;
 	pCanvasData->sliderH.bMouseDown = false;
+	ZONE_END(ctx)
 }
 
 static void MouseLeaveCallback(struct UIWidget* pWidget, float x, float y)
 {
+	ZONE(ctx)
 	struct CanvasData* pCanvasData = pWidget->pImplementationData;
 	pCanvasData->sliderV.bMouseDown = false;
 	pCanvasData->sliderH.bMouseDown = false;
+	ZONE_END(ctx)
 }
 
 static void MouseMoveCallback(struct UIWidget* pWidget, float x, float y)
 {
+	ZONE(ctx)
 	struct CanvasData* pCanvasData = pWidget->pImplementationData;
 	
 	if (pCanvasData->bUseHSlider && pCanvasData->bHSliderActive)
@@ -321,19 +349,23 @@ static void MouseMoveCallback(struct UIWidget* pWidget, float x, float y)
 			SliderWudget_SetSliderPositionFromMouse(pWidget, &pCanvasData->sliderV, x, y, pCanvasData->sliderVTopLeft[1], pCanvasData->sliderVTopLeft[1], zeroPadding);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 static void OnChildrenChanged(struct UIWidget* pWidget)
 {
+	ZONE(ctx)
 	struct CanvasData* pData = pWidget->pImplementationData;
 	GetChildrenBoundingBox(pWidget, pData->contentBB, &pData->contentBB[2]);
 	SetSliderMinAndMax(pWidget, pData);
 	SetScroll(pData);
 	UI_DefaultOnChildrenChanged(pWidget);
+	ZONE_END(ctx)
 }
 
 static void MakeWidgetIntoCanvasWidget(HWidget hWidget, struct DataNode* pDataNode, struct XMLUIData* pUILayerData)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(hWidget);
 	pWidget->hNext = -1;
 	pWidget->hPrev = -1;
@@ -375,12 +407,14 @@ static void MakeWidgetIntoCanvasWidget(HWidget hWidget, struct DataNode* pDataNo
 	{
 		SliderWidget_MakeDefaultSliderWidget(&pData->sliderV, pUILayerData, SO_Vertical);
 	}
-
+	ZONE_END(ctx)
 }
 
 HWidget CanvasWidgetNew(HWidget hParent, struct DataNode* pDataNode, struct XMLUIData* pUILayerData)
 {
+	ZONE(ctx)
 	HWidget hWidget = UI_NewBlankWidget();
 	MakeWidgetIntoCanvasWidget(hWidget, pDataNode, pUILayerData);
+	ZONE_END(ctx)
 	return hWidget;
 }

@@ -5,6 +5,7 @@
 #include "StringKeyHashMap.h"
 #include "AssertLib.h"
 #include "Log.h"
+#include "Profile.h"
 
 #define EVENT_MAX_NAME_LEN 64
 
@@ -27,6 +28,7 @@ struct GameFrameworkEvent
 
 static struct GameFrameworkEventListener* AddListener(struct GameFrameworkEvent* pEvent, EventListenerFn listenerFn, void* pUser, char* eventName)
 {
+	ZONE(ctx)
 	struct GameFrameworkEventListener* pListener = malloc(sizeof(struct GameFrameworkEventListener));
 	EASSERT(pListener);
 	memset(pListener, 0, sizeof(struct GameFrameworkEventListener));
@@ -48,11 +50,13 @@ static struct GameFrameworkEventListener* AddListener(struct GameFrameworkEvent*
 		pListener->pNext = NULL;
 		pEvent->pListenerTail = pListener;
 	}
+	ZONE_END(ctx)
 	return pListener;
 }
 
 struct GameFrameworkEventListener* Ev_SubscribeEvent(char* eventName, EventListenerFn listenerFn, void* pUser)
 {
+	ZONE(ctx)
 	Log_Verbose("SUBSCRIBING TO EVENT %s", eventName);
 	EASSERT(strlen(eventName) < EVENT_MAX_NAME_LEN);
 	struct GameFrameworkEvent* pEvent = HashmapSearch(&gEventMap, eventName);
@@ -62,11 +66,15 @@ struct GameFrameworkEventListener* Ev_SubscribeEvent(char* eventName, EventListe
 		memset(&ev, 0, sizeof(struct GameFrameworkEvent));
 		pEvent = HashmapInsert(&gEventMap, eventName, &ev);
 	}
-	return AddListener(pEvent, listenerFn, pUser, eventName);
+	
+	struct GameFrameworkEventListener* pListener = AddListener(pEvent, listenerFn, pUser, eventName);
+	ZONE_END(ctx)
+	return pListener;
 }
 
 bool Ev_UnsubscribeEvent(struct GameFrameworkEventListener* pListener)
 {
+	ZONE(ctx)
 	Log_Verbose("UNSUBSCRIBING TO EVENT %s", pListener->eventName);
 	struct GameFrameworkEvent* pEvent = HashmapSearch(&gEventMap, pListener->eventName);
 	if (pEvent)
@@ -94,11 +102,13 @@ bool Ev_UnsubscribeEvent(struct GameFrameworkEventListener* pListener)
 	{
 		Log_Warning("Ev_UnsubscribeEvent failed. Event name '%s'", pListener->eventName);
 	}
+	ZONE_END(ctx)
 	return false;
 }
 
 void Ev_FireEvent(char* eventName, void* eventArgs)
 {
+	ZONE(ctx)
 	int i = 0;
 	Log_Verbose("FIRING EVENT %s", eventName);
 	struct GameFrameworkEvent* pEvent = HashmapSearch(&gEventMap, eventName);
@@ -112,11 +122,14 @@ void Ev_FireEvent(char* eventName, void* eventArgs)
 			Log_Verbose("%s DEBUG COUNT %i", eventName, i++);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 void Ev_Init()
 {
+	ZONE(ctx)
 	HashmapInit(&gEventMap, 16, sizeof(struct GameFrameworkEvent));
+	ZONE_END(ctx)
 }
 
 void* Ev_GetUserData(struct GameFrameworkEventListener* pListener)

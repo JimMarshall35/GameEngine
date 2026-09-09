@@ -1,7 +1,9 @@
 #include "Entity2DCollection.h"
+#include "Profile.h"
 
 HDynamicEntityListItem DynL_AddEntity(struct DynamicEnt2DList* pDynList, HEntity2D hEnt)
 {
+    ZONE(ctx)
     HDynamicEntityListItem hItem = NULL_HANDLE;
     pDynList->pDynamicListItemPool = GetObjectPoolIndex(pDynList->pDynamicListItemPool, &hItem);
     struct DynamicEntityListItem* pItem = &pDynList->pDynamicListItemPool[hItem];
@@ -21,11 +23,13 @@ HDynamicEntityListItem DynL_AddEntity(struct DynamicEnt2DList* pDynList, HEntity
         pDynList->hDynamicListTail = hItem;
     }
     pDynList->nDynamicListSize++;
+    ZONE_END(ctx)
     return hItem;
 }
 
 void DynL_RemoveItem(struct DynamicEnt2DList* pDynList, HDynamicEntityListItem hListItem)
 {
+    ZONE(ctx)
     struct DynamicEntityListItem* pItem = &pDynList->pDynamicListItemPool[hListItem];
     if(pDynList->hDynamicListHead == hListItem)
     {
@@ -44,6 +48,7 @@ void DynL_RemoveItem(struct DynamicEnt2DList* pDynList, HDynamicEntityListItem h
         pDynList->pDynamicListItemPool[pItem->hNext].hPrev = pItem->hPrev;
     }
     pDynList->nDynamicListSize--;
+    ZONE_END(ctx)
 }
 
 int DynL_GetSize(struct DynamicEnt2DList* pDynList)

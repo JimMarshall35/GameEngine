@@ -5,6 +5,7 @@
 #include "AssertLib.h"
 #include "GameFramework.h"
 #include "Entities.h"
+#include "Profile.h"
 
 struct Phys2dWorld
 {
@@ -39,18 +40,23 @@ static OBJECT_POOL(struct Body2D) g2DPhysBodyPool = NULL;
 
 void Ph_DestroyPhysicsWorld(HPhysicsWorld world)
 {
+    ZONE(ctx)
     b2DestroyWorld(gWorldDefPool[world].id);
     FreeObjectPoolIndex(gWorldDefPool, world);
+    ZONE_END(ctx)
 }
 
 void Ph_Init()
 {
+    ZONE(ctx)
     gWorldDefPool = NEW_OBJECT_POOL(struct Phys2dWorld, 32);
     g2DPhysBodyPool = NEW_OBJECT_POOL(struct Body2D, 256);
+    ZONE_END(ctx)
 }
 
 HPhysicsWorld Ph_GetPhysicsWorld(float gravityX, float gravityY, float pixelsPerMeter)
 {
+    ZONE(ctx)
     HPhysicsWorld index = -1;
     gWorldDefPool = GetObjectPoolIndex(gWorldDefPool, &index);
     b2WorldDef def = b2DefaultWorldDef();
@@ -60,18 +66,22 @@ HPhysicsWorld Ph_GetPhysicsWorld(float gravityX, float gravityY, float pixelsPer
     gWorldDefPool[index].gravY = gravityY;
     gWorldDefPool[index].pxlPerMeter = pixelsPerMeter;
     gWorldDefPool[index].id = b2CreateWorld(&def);
+    ZONE_END(ctx)
     return index;
 }
 
 void Ph_PhysicsWorldStep(HPhysicsWorld hWorld, float timestep, int substepCount)
 {
+    ZONE(ctx)
     b2World_Step(gWorldDefPool[hWorld].id, timestep, substepCount);
+    ZONE_END(ctx)
     //b2Body_SetLinearVelocity
 }
 
 
 void Ph_PhysicsWorldDoCollisionEvents(struct GameFrameworkLayer* pLayer)
 {
+    ZONE(ctx)
     struct GameLayer2DData* pLayerData = pLayer->userData;
     struct Entity2DCollection* pEntCollection = &pLayerData->entities;
     HPhysicsWorld hWorld = pLayerData->hPhysicsWorld;
@@ -97,6 +107,7 @@ void Ph_PhysicsWorldDoCollisionEvents(struct GameFrameworkLayer* pLayer)
                 pSensorEnt->components[sensorComponentIndex].data.staticCollider.onSensorOverlapBegin(pLayer, hVisitor, pSensorEnt->thisEntity);
         }
     }
+    ZONE_END(ctx)
     // COMMENTED OUT UNTIL ACTUALLY NEEDED: THIS BREAKS WHEN AN ENTITY IS DELETED IN THE BEGIN EVENT
     // for(int i=0; i < sensorEvents.endCount; i++)
     // {
@@ -159,6 +170,7 @@ void Ph_UnpackShapeUserData(void* pUserData, HEntity2D* pOutEnt, u16* pOutCompIn
 
 static H2DBody GetBody(HPhysicsWorld world, struct PhysicsShape2D* pShape, struct Transform2D* pTransform, b2BodyType type, HEntity2D entity, bool bIsSensor, int entityComponentIndex, bool bEnableSensorEvents)
 {
+    ZONE(ctx)
     H2DBody hStatic = -1;
     g2DPhysBodyPool = GetObjectPoolIndex(g2DPhysBodyPool, &hStatic);
     g2DPhysBodyPool[hStatic].type = type;
@@ -246,53 +258,70 @@ static H2DBody GetBody(HPhysicsWorld world, struct PhysicsShape2D* pShape, struc
     default:
         break;
     }
+    ZONE_END(ctx)
     return hStatic;
 }
 
 H2DBody Ph_GetStaticBody2D(HPhysicsWorld world, struct PhysicsShape2D* pShape, struct Transform2D* pTransform, HEntity2D entity, bool bIsSensor, int entityComponentIndex, bool bGenerateSensorEvents)
 {
-    return GetBody(world, pShape, pTransform, b2_staticBody, entity, bIsSensor, entityComponentIndex, bGenerateSensorEvents);
+    ZONE(ctx)
+    H2DBody b = GetBody(world, pShape, pTransform, b2_staticBody, entity, bIsSensor, entityComponentIndex, bGenerateSensorEvents);
+    ZONE_END(ctx)
+    return b;
 }
 
 H2DBody Ph_GetDynamicBody(HPhysicsWorld world, struct PhysicsShape2D* pShape, struct KinematicBodyOptions* pOptions, struct Transform2D* pTransform, HEntity2D entity, bool bIsSensor,  int entityComponentIndex, bool bGenerateSensorEvents)
 {
-    return GetBody(world, pShape, pTransform, b2_dynamicBody, entity, bIsSensor, entityComponentIndex, bGenerateSensorEvents);
+    ZONE(ctx)
+    H2DBody b = GetBody(world, pShape, pTransform, b2_dynamicBody, entity, bIsSensor, entityComponentIndex, bGenerateSensorEvents);
+    ZONE_END(ctx)
+    return b;
 }
 
 void Ph_SetDynamicBodyVelocity(H2DBody hBody, vec2 velocity)
 {
     //EASSERT(g2DPhysBodyPool[hBody].type == b2_kinematicBody);
+    ZONE(ctx)
     b2Vec2 b2Vec = {.x = velocity[0], .y = velocity[1]};
     b2Body_SetLinearVelocity(g2DPhysBodyPool[hBody].bodyID, b2Vec);
+    ZONE_END(ctx)
 }
 
 void Ph_GetDynamicBodyVelocity(H2DBody hBody, vec2 outVelocity)
 {
+    ZONE(ctx)
     EASSERT(g2DPhysBodyPool[hBody].type == b2_kinematicBody);
     b2Vec2 b2Vec = b2Body_GetLinearVelocity(g2DPhysBodyPool[hBody].bodyID);
     outVelocity[0] = b2Vec.x;
     outVelocity[1] = b2Vec.y;
+    ZONE_END(ctx)
 }
 
 void Ph_GetDynamicBodyPosition(H2DBody hBody, vec2 outPos)
 {
+    ZONE(ctx)
     b2Vec2 b2Vec = b2Body_GetPosition(g2DPhysBodyPool[hBody].bodyID);
     outPos[0] = b2Vec.x;
     outPos[1] = b2Vec.y;
+    ZONE_END(ctx)
 }
 
 void Ph_SetDynamicBodyPosition(H2DBody hBody, vec2 inPos)
 {
+    ZONE(ctx)
     b2Rot rot = b2Body_GetRotation(g2DPhysBodyPool[hBody].bodyID);
     b2Vec2 b2Vec2 = {
         .x = inPos[0],
         .y = inPos[1]
     };
     b2Body_SetTransform(g2DPhysBodyPool[hBody].bodyID, b2Vec2, rot);
+    ZONE_END(ctx)
 }
 
 void Ph_DestroyBody(H2DBody body)
 {
+    ZONE(ctx)
     b2DestroyBody(g2DPhysBodyPool[body].bodyID);
     FreeObjectPoolIndex(g2DPhysBodyPool, body);
+    ZONE_END(ctx)
 }

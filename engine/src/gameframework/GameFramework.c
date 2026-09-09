@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "Profile.h"
 
 struct LayerChange
 {
@@ -27,28 +28,35 @@ static int gDrawItrStart = 0;
 
 void GF_InitGameFramework()
 {
+	ZONE(ctx)
 	gLayerStack = NEW_VECTOR(struct GameFrameworkLayer);
 	gLayerStack = VectorResize(gLayerStack, 32);
 	gLayerStack = VectorClear(gLayerStack);
 	gLayerChangeQueue = NEW_VECTOR(struct LayerChange);
 	Ev_Init();
+	ZONE_END(ctx)
 }
 
 void GF_DestroyGameFramework()
 {
+	ZONE(ctx)
 	DestoryVector(gLayerStack);
+	ZONE_END(ctx)
 }
 
 void GF_PushGameFrameworkLayer(const struct GameFrameworkLayer* layer)
 {
+	ZONE(ctx)
 	struct LayerChange lc;
 	lc.bIsPush = true;
 	memcpy(&lc.layer, layer, sizeof(struct GameFrameworkLayer));
 	gLayerChangeQueue = VectorPush(gLayerChangeQueue, &lc);
+	ZONE_END(ctx)
 }
 
 static int FindNewItrStart(GameFrameworkLayerFlags type)
 {
+	ZONE(ctx)
 	int rval = 0;
 	for (int i = VectorSize(gLayerStack) - 1; i <= 0; i--)
 	{
@@ -58,21 +66,23 @@ static int FindNewItrStart(GameFrameworkLayerFlags type)
 			break;
 		}
 	}
+	ZONE_END(ctx)
 	return rval;
 }
  
 void GF_PopGameFrameworkLayer()
 {
-
+	ZONE(ctx)
 	struct LayerChange lc;
 	lc.bIsPush = false;
 	memset(&lc.layer, 0, sizeof(struct GameFrameworkLayer));
 	gLayerChangeQueue = VectorPush(gLayerChangeQueue, &lc);
-
+	ZONE_END(ctx)
 }
 
 void GF_EndFrame(DrawContext* drawContext, InputContext* inputContext)
 {
+	ZONE(ctx)
 	for (int i = 0; i < VectorSize(gLayerChangeQueue); i++)
 	{
 		if (gLayerChangeQueue[i].bIsPush)
@@ -123,10 +133,12 @@ void GF_EndFrame(DrawContext* drawContext, InputContext* inputContext)
 		//VectorPop(gLayerChangeQueue);
 	}
 	gLayerChangeQueue = VectorClear(gLayerChangeQueue);
+	ZONE_END(ctx)
 }
 
 void GF_UpdateGameFramework(float deltaT)
 {
+	ZONE(ctx)
 	for (int i = gUpdateItrStart; i < VectorSize(gLayerStack); i++)
 	{
 		if(gLayerStack[i].flags & EnableUpdateFn)
@@ -134,10 +146,12 @@ void GF_UpdateGameFramework(float deltaT)
 			gLayerStack[i].update(&gLayerStack[i], deltaT);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 void GF_InputGameFramework(InputContext* context)
 {
+	ZONE(ctx)
 	for (int i = gInputItrStart; i < VectorSize(gLayerStack); i++)
 	{
 		if(gLayerStack[i].flags & EnableInputFn)
@@ -145,6 +159,7 @@ void GF_InputGameFramework(InputContext* context)
 			gLayerStack[i].input(&gLayerStack[i], context);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 void GF_DrawGameFramework(DrawContext* context)
@@ -154,6 +169,7 @@ void GF_DrawGameFramework(DrawContext* context)
 	// 	gChangeLastFrame = false;
 	// 	return;
 	// }
+	ZONE(ctx)
 	int c = 0;
 	for (int i = gDrawItrStart; i < VectorSize(gLayerStack); i++)
 	{
@@ -162,10 +178,12 @@ void GF_DrawGameFramework(DrawContext* context)
 			gLayerStack[i].draw(&gLayerStack[i], context);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 void GF_OnWindowDimsChanged(int newW, int newH)
 {
+	ZONE(ctx)
 	for (int i = 0; i < VectorSize(gLayerStack); i++)
 	{
 		if (gLayerStack[i].onWindowDimsChanged)
@@ -173,10 +191,12 @@ void GF_OnWindowDimsChanged(int newW, int newH)
 			gLayerStack[i].onWindowDimsChanged(&gLayerStack[i], newW, newH);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 struct GameFrameworkLayer* GF_GetLayerBelow(struct GameFrameworkLayer* pLayer)
 {
+	ZONE(ctx)
 	EASSERT(VectorSize(gLayerStack) > 0);
 	EASSERT(pLayer != NULL);
 
@@ -189,5 +209,6 @@ struct GameFrameworkLayer* GF_GetLayerBelow(struct GameFrameworkLayer* pLayer)
 		}
 		pLast = &gLayerStack[i];
 	}
+	ZONE_END(ctx)
 	return NULL;
 }

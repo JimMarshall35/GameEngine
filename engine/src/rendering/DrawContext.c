@@ -12,7 +12,7 @@
 #include "PlatformDefs.h"
 #include "Game2DLayer.h"
 #include "Log.h"
-
+#include "Profile.h"
 
 const char* lineVert =
 #if GAME_GL_API_TYPE == GAME_GL_API_TYPE_CORE
@@ -211,6 +211,7 @@ OBJECT_POOL(struct IndexedVertexBuffer) gIndexedVertexBuffersPool = NULL;
 
 static bool OpenGlGPULoadTexture(const unsigned char* data, unsigned int width, unsigned int height, unsigned int* id)
 {
+	ZONE(ctx)
 	glGenTextures(1, id);
 	glBindTexture(GL_TEXTURE_2D, *id);
 	// set the texture wrapping/filtering options (on the currently bound texture object)
@@ -220,11 +221,13 @@ static bool OpenGlGPULoadTexture(const unsigned char* data, unsigned int width, 
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // as gives better more "pixelated" (less "smoothed out") textures
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
+	ZONE_END(ctx)
 	return true;
 }
 
 static void TestShaderStatus(GLuint shader, enum ShaderType type)
 {
+	ZONE(ctx)
 	GLint success;
 	GLchar infoLog[1024];
 	if (type != ST_Program)
@@ -249,10 +252,12 @@ static void TestShaderStatus(GLuint shader, enum ShaderType type)
 				infoLog);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 static void CreateShader(const char* vert, const char* frag, struct Shader* pShader)
 {
+	ZONE(ctx)
 	int success = GL_FALSE;
 
 	pShader->vert = glCreateShader(GL_VERTEX_SHADER);
@@ -275,20 +280,23 @@ static void CreateShader(const char* vert, const char* frag, struct Shader* pSha
 	glLinkProgram(pShader->program);
 
 	TestShaderStatus(pShader->program, ST_Program);
-
+	ZONE_END(ctx)
 }
 
 static void CreateShaders()
 {
+	ZONE(ctx)
 	CreateShader(lineVert, lineFrag, &gWorldspaceLineShader);
 	CreateShader(uiVert, uiFrag, &gUIShader);
 	CreateShader(worldspaceVert, worldspaceFrag, &gWorldspace2DShader);
+	ZONE_END(ctx)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////// Worldspace lines
 
 static HWorldspaceLineVertexBuffer NewWorldspaceLineBuffer(int size)
 {
+	ZONE(ctx)
 	HWorldspaceLineVertexBuffer buf = -1;
 	gLineVertexPool = GetObjectPoolIndex(gLineVertexPool, &buf);
 	struct VertexBuffer* pBuf = &gLineVertexPool[buf];
@@ -305,11 +313,13 @@ static HWorldspaceLineVertexBuffer NewWorldspaceLineBuffer(int size)
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	ZONE_END(ctx)
 	return buf;
 }
 
 static void WorldspaceLineBufferData(HWorldspaceLineVertexBuffer hBuf, WorldspaceLineVertex* src, size_t size)
 {
+	ZONE(ctx)
 	struct VertexBuffer* pBuf = &gLineVertexPool[hBuf];
 
 	glBindBuffer(GL_ARRAY_BUFFER, pBuf->vbo);
@@ -323,10 +333,12 @@ static void WorldspaceLineBufferData(HWorldspaceLineVertexBuffer hBuf, Worldspac
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size * sizeof(WorldspaceLineVertex), src);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	ZONE_END(ctx)
 }
 
 static void DrawWorldspaceLineVertexBuffer(HWorldspaceLineVertexBuffer hBuf, size_t vertexCount, mat4 view)
 {
+	ZONE(ctx)
 	const struct VertexBuffer* vertexBuffer = &gLineVertexPool[hBuf];
 
 	glUseProgram(gWorldspaceLineShader.program);
@@ -341,6 +353,7 @@ static void DrawWorldspaceLineVertexBuffer(HWorldspaceLineVertexBuffer hBuf, siz
 	glUniformMatrix4fv(projectionViewUniform, 1, false, &m[0][0]);
 
 	glDrawArrays(GL_LINES, 0, vertexCount);
+	ZONE_END(ctx)
 }
 /*
 	const struct IndexedVertexBuffer* vertexBuffer = &gIndexedVertexBuffersPool[hBuf];
@@ -356,15 +369,18 @@ static void DrawWorldspaceLineVertexBuffer(HWorldspaceLineVertexBuffer hBuf, siz
 */
 static void DestroyWorldspaceLineVertexBuffer(HWorldspaceLineVertexBuffer hBuf)
 {
+	ZONE(ctx)
 	const struct VertexBuffer* vertexBuffer = &gLineVertexPool[hBuf];
 	glDeleteBuffers(1, &vertexBuffer->vbo);
 	glDeleteVertexArrays(1, &vertexBuffer->vao);
+	ZONE_END(ctx)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////// UI (screen space) Sprites
 
 static HUIVertexBuffer NewUIVertexBuffer(int size)
 {
+	ZONE(ctx)
 	HUIVertexBuffer buf = -1;
 	gVertexBuffersPool = GetObjectPoolIndex(gVertexBuffersPool, &buf);
 	struct VertexBuffer* pBuf = &gVertexBuffersPool[buf];
@@ -383,11 +399,13 @@ static HUIVertexBuffer NewUIVertexBuffer(int size)
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	ZONE_END(ctx)
 	return buf;
 }
 
 static void UIVertexBufferData(HUIVertexBuffer hBuf, WidgetVertex* src, size_t size)
 {
+	ZONE(ctx)
 	struct VertexBuffer* pBuf = &gVertexBuffersPool[hBuf];
 
 	glBindBuffer(GL_ARRAY_BUFFER, pBuf->vbo);
@@ -401,10 +419,12 @@ static void UIVertexBufferData(HUIVertexBuffer hBuf, WidgetVertex* src, size_t s
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size * sizeof(WidgetVertex), src);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	ZONE_END(ctx)
 }
 
 static void DrawUIVertexBuffer(HUIVertexBuffer hBuf, size_t vertexCount)
 {
+	ZONE(ctx)
 	const struct VertexBuffer* vertexBuffer = &gVertexBuffersPool[hBuf];
 
 	glUseProgram(gUIShader.program);
@@ -415,13 +435,16 @@ static void DrawUIVertexBuffer(HUIVertexBuffer hBuf, size_t vertexCount)
 	glUniformMatrix4fv(projectionViewUniform, 1, false, &gScreenspaceOrtho[0][0]);
 
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+	ZONE_END(ctx)
 }
 
 static void DestroyUIVertexBuffer(HUIVertexBuffer hBuf)
 {
+	ZONE(ctx)
 	const struct VertexBuffer* vertexBuffer = &gVertexBuffersPool[hBuf];
 	glDeleteBuffers(1, &vertexBuffer->vbo);
 	glDeleteVertexArrays(1, &vertexBuffer->vao);
+	ZONE_END(ctx)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////// textures
@@ -429,21 +452,27 @@ static void DestroyUIVertexBuffer(HUIVertexBuffer hBuf)
 
 static hTexture UploadTexture(void* src, int channels, int pxWidth, int pxHeight)
 {
+	ZONE(ctx)
 	EASSERT(channels == 4);
 	hTexture txture = 0;
 	OpenGlGPULoadTexture(src, pxWidth, pxHeight, &txture);
+	ZONE_END(ctx)
 	return txture;
 }
 
 static void SetCurrentAtlas(hTexture atlas)
 {
+	ZONE(ctx)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, atlas);
+	ZONE_END(ctx)
 }
 
 static void DestroyTexture(hTexture tex)
 {
+	ZONE(ctx)
 	glDeleteTextures(1, &tex);
+	ZONE_END(ctx)
 }
 
 
@@ -451,6 +480,7 @@ static void DestroyTexture(hTexture tex)
 
 static HWorldspaceVertexBuffer NewWorldspaceVertexBuffer(int size)
 {
+	ZONE(ctx)
 	HWorldspaceVertexBuffer buf = -1;
 	gVertexBuffersPool = GetObjectPoolIndex(gIndexedVertexBuffersPool, &buf);
 	struct IndexedVertexBuffer* pBuf = &gIndexedVertexBuffersPool[buf];
@@ -470,11 +500,13 @@ static HWorldspaceVertexBuffer NewWorldspaceVertexBuffer(int size)
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	ZONE_END(ctx)
 	return buf;
 }
 
 void WorldspaceVertexBufferData(HUIVertexBuffer hBuf, Worldspace2DVert* src, size_t size, VertIndexT* indices, u32 numIndices)
 {
+	ZONE(ctx)
 	struct IndexedVertexBuffer* pBuf = &gIndexedVertexBuffersPool[hBuf];
 
 	glBindBuffer(GL_ARRAY_BUFFER, pBuf->vbo);
@@ -500,10 +532,12 @@ void WorldspaceVertexBufferData(HUIVertexBuffer hBuf, Worldspace2DVert* src, siz
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	ZONE_END(ctx)
 }
 
 void DrawWorldspaceVertexBuffer(H2DWorldspaceVertexBuffer hBuf, size_t indexCount, mat4 view)
 {
+	ZONE(ctx)
 	const struct IndexedVertexBuffer* vertexBuffer = &gIndexedVertexBuffersPool[hBuf];
 	glUseProgram(gWorldspace2DShader.program);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->vbo);
@@ -514,14 +548,17 @@ void DrawWorldspaceVertexBuffer(H2DWorldspaceVertexBuffer hBuf, size_t indexCoun
 	glm_mat4_mul(&gScreenspaceOrtho[0], &view[0], &m[0]);
 	glUniformMatrix4fv(projectionViewUniform, 1, false, &m[0][0]);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
+	ZONE_END(ctx)
 }
 
 void DestroyWorldspaceVertexBuffer(H2DWorldspaceVertexBuffer hBuf)
 {
+	ZONE(ctx)
 	const struct IndexedVertexBuffer* vertexBuffer = &gIndexedVertexBuffersPool[hBuf];
 	glDeleteBuffers(1, &vertexBuffer->vbo);
 	glDeleteBuffers(1, &vertexBuffer->ebo);
 	glDeleteVertexArrays(1, &vertexBuffer->vao);
+	ZONE_END(ctx)
 }
 
 #if GAME_GL_API_TYPE == GAME_GL_API_TYPE_CORE
@@ -546,8 +583,10 @@ void DestroyWorldspaceVertexBuffer(H2DWorldspaceVertexBuffer hBuf)
 
 static void ClearScreen()
 {
+	ZONE(ctx)
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	ZONE_END(ctx)
 } 
 
 static void SetLineWidth(float w)
@@ -557,6 +596,7 @@ static void SetLineWidth(float w)
 
 DrawContext Dr_InitDrawContext()
 {
+	ZONE(ctx)
 	// configure global opengl state
     // -----------------------------
     Log_Verbose("configuring global opengl state");
@@ -602,13 +642,16 @@ DrawContext Dr_InitDrawContext()
 	gLineVertexPool = NEW_OBJECT_POOL(struct VertexBuffer, 256);
 	glm_mat4_identity(gScreenspaceOrtho);
 	CreateShaders();
+	ZONE_END(ctx)
 	return d;
 }
 
 void Dr_OnScreenDimsChange(DrawContext* pCtx, int newW, int newH)
 {
+	ZONE(ctx)
 	pCtx->screenWidth = newW;
 	pCtx->screenHeight = newH;
 	glViewport(0, 0, newW, newH);
 	glm_ortho(0.0f, newW, newH, 0.0f, -1.0f, 1.0f, gScreenspaceOrtho);
+	ZONE_END(ctx)
 }

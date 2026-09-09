@@ -5,6 +5,7 @@
 #include "Geometry.h"
 #include "Game2DLayer.h"
 #include "GameFramework.h"
+#include "Profile.h"
 
 enum Entity2DQuadtreeQuadrant
 {
@@ -39,6 +40,7 @@ static OBJECT_POOL(struct Entity2DQuadTreeEntityRef) gEntityRefPool = NULL;
 
 static void GetQuadtreeNodeQuadrant(struct Entity2DQuadtreeNode* pNode, enum Entity2DQuadtreeQuadrant quadrant, vec2 tl, vec2 br)
 {
+    ZONE(ctx)
     switch (quadrant)
     {
     case Quadtree_TL:
@@ -69,10 +71,12 @@ static void GetQuadtreeNodeQuadrant(struct Entity2DQuadtreeNode* pNode, enum Ent
         EASSERT(false);
         break;
     }
+    ZONE_END(ctx)
 }
 
 static bool IsContainedWithin(vec2 quadrantTL, vec2 quadrantBR, vec2 rectTL, vec2 rectBR)
 {
+    ZONE(ctx)
     if(rectTL[0] >= quadrantTL[0])
     {
         if(rectBR[0] <= quadrantBR[0])
@@ -81,16 +85,19 @@ static bool IsContainedWithin(vec2 quadrantTL, vec2 quadrantBR, vec2 rectTL, vec
             {
                 if(rectBR[1] <= quadrantBR[1])
                 {
+                    ZONE_END(ctx)
                     return true;
                 }
             }
         }
     }
+    ZONE_END(ctx)
     return false;
 }
 
 static void NewQuadtreeNode(int x, int y, int w, int h, struct Entity2DQuadtreeNode* pNode)
 {
+    ZONE(ctx)
     pNode->tl[0] = x;
     pNode->tl[1] = y;
     pNode->w = w;
@@ -103,33 +110,41 @@ static void NewQuadtreeNode(int x, int y, int w, int h, struct Entity2DQuadtreeN
     {
         pNode->children[i] = NULL_HANDLE;
     }
+    ZONE_END(ctx)
 }
 
 static void NewQuadTreeEntityRef(HEntity2D hEnt, struct Entity2DQuadTreeEntityRef* pRef)
 {
+    ZONE(ctx)
     pRef->hNextSibling = NULL_HANDLE;
     pRef->hPrevSibling = NULL_HANDLE;
     pRef->hParentNode = NULL_HANDLE;
     pRef->hEntity = hEnt;
+    ZONE_END(ctx)
 }
 
 void InitEntity2DQuadtreeSystem()
 {
+    ZONE(ctx)
     gEntityRefPool = NEW_OBJECT_POOL(struct Entity2DQuadTreeEntityRef, 1024);
     gNodePool = NEW_OBJECT_POOL(struct Entity2DQuadtreeNode, 512);
+    ZONE_END(ctx)
 }
 
 HEntity2DQuadtreeNode GetEntity2DQuadTree(struct Entity2DQuadTreeInitArgs* args)
 {
+    ZONE(ctx)
     HEntity2DQuadtreeNode hOutNode;
     gNodePool = GetObjectPoolIndex(gNodePool, &hOutNode);
 
     NewQuadtreeNode(args->x, args->y, args->w, args->h, &gNodePool[hOutNode]);
+    ZONE_END(ctx)
     return hOutNode;
 }
 
 void DestroyEntity2DQuadTree(HEntity2DQuadtreeNode quadTree)
 {
+    ZONE(ctx)
     for(int i=0; i<4; i++)
     {
         HEntity2DQuadtreeNode child = gNodePool[quadTree].children[i];
@@ -139,10 +154,13 @@ void DestroyEntity2DQuadTree(HEntity2DQuadtreeNode quadTree)
         }
     }
     FreeObjectPoolIndex(gNodePool, quadTree);
+    ZONE_END(ctx)
 }
 
 HEntity2DQuadtreeEntityRef Entity2DQuadTree_Insert(struct Entity2DCollection* pCollection, HEntity2DQuadtreeNode quadTree, HEntity2D hEnt, struct GameFrameworkLayer* pLayer, int depth, int maxDepth)
 {
+    ZONE(ctx)
+
     struct GameLayer2DData* pData = pLayer->userData;
 
     struct Entity2D* pEnt = Et2D_GetEntity(pCollection, hEnt);
@@ -187,11 +205,14 @@ HEntity2DQuadtreeEntityRef Entity2DQuadTree_Insert(struct Entity2DCollection* pC
         }
         pNode->numEntities++;
     }
+    ZONE_END(ctx)
+
     return ref;
 }
 
 void Entity2DQuadTree_Remove(HEntity2DQuadtreeNode quadTree, HEntity2DQuadtreeEntityRef ent)
 {
+    ZONE(ctx)
     struct Entity2DQuadtreeNode* pNode = &gNodePool[gEntityRefPool[ent].hParentNode];
     struct Entity2DQuadTreeEntityRef* pEntRef = &gEntityRefPool[ent];
     pEntRef->hEntity = NULL_HANDLE;
@@ -220,11 +241,12 @@ void Entity2DQuadTree_Remove(HEntity2DQuadtreeNode quadTree, HEntity2DQuadtreeEn
     }
 
     FreeObjectPoolIndex(gEntityRefPool, ent);
+    ZONE_END(ctx)
 }
 
 VECTOR(HEntity2D) Entity2DQuadTree_Query(HEntity2DQuadtreeNode quadTree, vec2 regionTL, vec2 regionBR, VECTOR(HEntity2D) outEntities, struct Entity2DCollection* pCollection, struct GameFrameworkLayer* pLayer)
 {
-    /* Implement me next! */
+    ZONE(ctx)
     struct Entity2DQuadtreeNode* pNode = &gNodePool[quadTree];
     vec2 nodeBr = {
         pNode->tl[0] + pNode->w,
@@ -259,14 +281,16 @@ VECTOR(HEntity2D) Entity2DQuadTree_Query(HEntity2DQuadtreeNode quadTree, vec2 re
             }
         }
     }
-    
+    ZONE_END(ctx)
     return outEntities;
 }
 
 void Entity2DQuadTree_GetDims(HEntity2DQuadtreeNode quadTree, vec2 tl, float* w, float* h)
 {
+    ZONE(ctx)
     tl[0] = gNodePool[quadTree].tl[0];
     tl[1] = gNodePool[quadTree].tl[1];
     *w = gNodePool[quadTree].w;
     *h = gNodePool[quadTree].h;
+    ZONE_END(ctx)
 }

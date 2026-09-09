@@ -16,7 +16,7 @@
 #include "Audio.h"
 #include "cwalk.h"
 #include "Platform.h"
-
+#include "Profile.h"
 
 
 InputContext gInputContext;
@@ -257,6 +257,7 @@ int EngineStart(int argc, char** argv, GameInitFn init, ArgHandlerFn argHandler)
         accumulator += delta;
         while (accumulator > slice)
         {
+            FRAME_MARK
             Platform_PollEvents();
             //DoNetworkQueues();
             GF_InputGameFramework(&gInputContext);

@@ -6,6 +6,7 @@
 #include "Atlas.h"
 #include "Game2DLayer.h"
 #include "Game2DVertexOutputHelpers.h"
+#include "Profile.h"
 
 void SpriteComp_OnInit(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, float deltaT)
 {
@@ -31,10 +32,15 @@ void SpriteComp_Draw(
     VertIndexT* pNextIndex
 )
 {
+    ZONE(ctx)
     if(!pSpriteComp->bDraw)
+    {
+        ZONE_END(ctx)
         return;
+    }
 
     HSprite_DrawBase(pSpriteComp->sprite, &pSpriteComp->transform, pEnt, pLayer, outVerts, outIndices, pNextIndex);
+    ZONE_END(ctx)
 }
 
 void SpriteComp_Input(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, InputContext* context)
@@ -49,7 +55,12 @@ void SpriteComp_OnDestroy(struct Entity2D* pEnt)
 
 void SpriteComp_GetBoundingBox(struct Entity2D* pEnt, struct Sprite* pSpriteComp, struct GameFrameworkLayer* pLayer, vec2 outTL, vec2 outBR)
 {
-    if(!pSpriteComp->bDraw) return;
+    ZONE(ctx)
+    if(!pSpriteComp->bDraw)
+    {
+        ZONE_END(ctx)
+        return;
+    } 
     struct GameLayer2DData* pLayerData = pLayer->userData;
     AtlasSprite* pSprite = At_GetSprite(pSpriteComp->sprite, pLayerData->hAtlas);
     vec2 tl = {pEnt->transform.position[0], pEnt->transform.position[1]};
@@ -66,5 +77,6 @@ void SpriteComp_GetBoundingBox(struct Entity2D* pEnt, struct Sprite* pSpriteComp
 	outTL[1] = tl[1];
 	outBR[0] = br[0];
 	outBR[1] = br[1];
+    ZONE_END(ctx)
 }
 

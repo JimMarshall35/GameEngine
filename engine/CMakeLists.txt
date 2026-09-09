@@ -1,6 +1,7 @@
 include(CMakePrintHelpers)
 cmake_minimum_required(VERSION 3.16)
 project(StardewEngine)
+include(FetchContent)
 
 set(STARDEW_PLATFORM "GLFW3" CACHE STRING "Backend")
 
@@ -14,6 +15,19 @@ set_property(CACHE STARDEW_GL_API_TYPE PROPERTY STRINGS
     OPENGL OPENGLES
 )
 
+if(ENABLE_PROFILING)
+    # via Conan or FetchContent, however you're pulling Tracy in
+    FetchContent_Declare (
+      tracy
+      GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+      GIT_TAG master
+      GIT_SHALLOW TRUE
+      GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable ( tracy )
+    target_link_libraries ( StardewEngine PUBLIC TracyClient )
+    target_compile_definitions(StardewEngine PRIVATE TRACY_ENABLE)
+endif()
 
 if(STARDEW_PLATFORM STREQUAL "GLFW3")
   find_package(glfw3 REQUIRED)

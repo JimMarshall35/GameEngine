@@ -6,6 +6,7 @@
 #include "Game2DLayer.h"
 #include "GameFramework.h"
 #include <string.h>
+#include "Profile.h"
 
 
 void OutputSpriteVerticesBase(
@@ -20,6 +21,7 @@ void OutputSpriteVerticesBase(
 	struct Transform2D* transform
 )
 {
+	ZONE(ctx)
 	VECTOR(Worldspace2DVert) outVert = *pOutVert;
 	VECTOR(VertIndexT) outInd = *pOutInd;
 
@@ -70,10 +72,12 @@ void OutputSpriteVerticesBase(
 
 	*pOutVert = outVert;
 	*pOutInd = outInd;
+	ZONE_END(ctx)
 }
 
 static void SpriteComp_GetBoundingBoxInternalBase(struct Entity2D* pEnt, hSprite sprite, struct GameFrameworkLayer* pLayer, vec2 outTL, vec2 outBR)
 {
+	ZONE(ctx)
     struct GameLayer2DData* pLayerData = pLayer->userData;
     AtlasSprite* pSprite = At_GetSprite(sprite, pLayerData->hAtlas);
     vec2 tl = {0,0};
@@ -91,6 +95,7 @@ static void SpriteComp_GetBoundingBoxInternalBase(struct Entity2D* pEnt, hSprite
 	outTL[1] = tl[1];
 	outBR[0] = br[0];
 	outBR[1] = br[1];
+	ZONE_END(ctx)
 }
 
 void HSprite_DrawBase(
@@ -102,6 +107,7 @@ void HSprite_DrawBase(
     VECTOR(VertIndexT)* outIndices, 
     VertIndexT* pNextIndex)
 {
+	ZONE(ctx)
     vec3 tl, tr, bl, br;
     tl[2] = 1.0f;
     tr[2] = 1.0f;
@@ -146,5 +152,6 @@ void HSprite_DrawBase(
     glm_mat3_mulv(rot, br, br);
 
     OutputSpriteVerticesBase(pSprite, outVerts, outIndices, pNextIndex, tl, tr, bl, br, &pEnt->transform);
+	ZONE_END(ctx)
 }
 

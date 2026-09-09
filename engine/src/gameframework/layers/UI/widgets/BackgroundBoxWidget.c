@@ -8,31 +8,37 @@
 #include "Scripting.h"
 #include "DataNode.h"
 #include "Log.h"
+#include "Profile.h"
 
 static float GetWidth(struct UIWidget* pWidget, struct UIWidget* pParent)
 {
+	ZONE(ctx)
 	EASSERT(UI_CountWidgetChildrenPtr(pWidget) == 1);
 	if (pWidget->hFirstChild != NULL_HWIDGET)
 	{
 		struct UIWidget* pFirstChild = UI_GetWidget(pWidget->hFirstChild);
 		return pFirstChild->fnGetWidth(pFirstChild, pWidget) + pWidget->padding.paddingLeft + pWidget->padding.paddingRight;
 	}
+	ZONE_END(ctx)
 	return 0.0f;
 }
 
 static float GetHeight(struct UIWidget* pWidget, struct UIWidget* pParent)
 {
+	ZONE(ctx)
 	EASSERT(UI_CountWidgetChildrenPtr(pWidget) == 1);
 	if (pWidget->hFirstChild != NULL_HWIDGET)
 	{
 		struct UIWidget* pFirstChild = UI_GetWidget(pWidget->hFirstChild);
 		return pFirstChild->fnGetHeight(pFirstChild, pWidget) + pWidget->padding.paddingTop + pWidget->padding.paddingBottom;
 	}
+	ZONE_END(ctx)
 	return 0.0f;
 }
 
 static void LayoutChildren(struct UIWidget* pWidget, struct UIWidget* pParent)
 {
+	ZONE(ctx)
 	struct UIWidget* pChild = UI_GetWidget(pWidget->hFirstChild);
 	if (pChild)
 	{
@@ -40,22 +46,27 @@ static void LayoutChildren(struct UIWidget* pWidget, struct UIWidget* pParent)
 		pChild->left = pWidget->left + pWidget->padding.paddingLeft;
 		pChild->fnLayoutChildren(pChild, pWidget);
 	}
+	ZONE_END(ctx)
 }
 
 void BackgroundBoxWidget_Destroy(struct BackgroundBoxWidgetData* pBBoxData)
 {
+	ZONE(ctx)
 	if (pBBoxData->imageName)
 	{
 		free(pBBoxData->imageName);
 	}
+	ZONE_END(ctx)
 }
 
 
 static void OnDestroy(struct UIWidget* pWidget)
 {
+	ZONE(ctx)
 	struct BackgroundBoxWidgetData* pBBoxData = pWidget->pImplementationData;
 
 	free(pWidget->pImplementationData);
+	ZONE_END(ctx)
 }
 
 void* OnOutputVerts_3StripsHorizontal(
@@ -67,6 +78,7 @@ void* OnOutputVerts_3StripsHorizontal(
 	float left, float top
 )
 {
+	ZONE(ctx)
 	AtlasSprite* pAtlasSprite = At_GetSprite(pBBoxData->sprite, pBBoxData->atlas);
 	const struct WidgetScale* pScale = &pBBoxData->scale;
 	WidgetQuad quads[3]; // in row first order, ie topleft, topmcentre, topright, middleleft, middlecentre, ect...
@@ -114,6 +126,7 @@ void* OnOutputVerts_3StripsHorizontal(
 	{
 		pOutVerts = OutputWidgetQuad(pOutVerts, &quads[i]);
 	}
+	ZONE_END(ctx)
 	return pOutVerts;
 }
 
@@ -138,6 +151,7 @@ void* BackgroundBoxWidget_OutputVerts(
 	float left, float top
 )
 {
+	ZONE(ctx)
 	AtlasSprite* pAtlasSprite = At_GetSprite(pBBoxData->sprite, pBBoxData->atlas);
 	const struct WidgetScale* pScale = &pBBoxData->scale;
 	float widgetWidth = totalWidth - padding->paddingLeft - padding->paddingRight;//GetWidth(pWidget, NULL) - pWidget->padding.paddingLeft - pWidget->padding.paddingRight;
@@ -254,12 +268,14 @@ void* BackgroundBoxWidget_OutputVerts(
 	{
 		pOutVerts = OutputWidgetQuad(pOutVerts, &quads[i]);
 	}
+	ZONE_END(ctx)
 
 	return pOutVerts;
 }
 
 static void* OnOutputVerts(struct UIWidget* pWidget, VECTOR(WidgetVertex) pOutVerts)
 {
+	ZONE(ctx)
 	float totalW = GetWidth(pWidget, NULL);
 	float totalH = GetHeight(pWidget, NULL);
 	pOutVerts = BackgroundBoxWidget_OutputVerts(
@@ -272,11 +288,13 @@ static void* OnOutputVerts(struct UIWidget* pWidget, VECTOR(WidgetVertex) pOutVe
 		pWidget->top
 	);
 	pOutVerts = UI_Helper_OnOutputVerts(pWidget, pOutVerts);
+	ZONE_END(ctx)
 }
 
 
 static void OnPropertyChanged(struct UIWidget* pThisWidget, struct WidgetPropertyBinding* pBinding)
 {
+	ZONE(ctx)
 	struct BackgroundBoxWidgetData* pData = pThisWidget->pImplementationData;
 	if (strcmp(pBinding->boundPropertyName, "sprite") == 0)
 	{
@@ -290,11 +308,12 @@ static void OnPropertyChanged(struct UIWidget* pThisWidget, struct WidgetPropert
 		Sc_StackTopStrCopy(pData->imageName);
 		pData->sprite = At_FindSprite(pData->imageName, pData->atlas);
 	}
+	ZONE_END(ctx)
 }
 
 static void ParseBindingEspressionAttribute(char* pAttributeName, char* pAttributeContent, struct UIWidget* pWidget, struct BackgroundBoxWidgetData* pWidgetData, struct XMLUIData* pUILayerData)
 {
-
+	ZONE(ctx)
 	if (strcmp(pAttributeName, "sprite") == 0)
 	{
 		if (pWidgetData->imageName)
@@ -310,10 +329,12 @@ static void ParseBindingEspressionAttribute(char* pAttributeName, char* pAttribu
 	{
 		Log_Warning("invalid property binding: %s", pAttributeContent);
 	}
+	ZONE_END(ctx)
 }
 
 static void ParseLiteralBackgroundBoxData(struct BackgroundBoxWidgetData* pWidgetData, const char* attributeContentBuffer)
 {
+	ZONE(ctx)
 	if (pWidgetData->imageName)
 	{
 		free(pWidgetData->imageName);
@@ -323,10 +344,12 @@ static void ParseLiteralBackgroundBoxData(struct BackgroundBoxWidgetData* pWidge
 	pWidgetData->imageName = malloc(strlen(attributeContentBuffer) + 1);
 	strcpy(pWidgetData->imageName, attributeContentBuffer);
 	pWidgetData->sprite = At_FindSprite(pWidgetData->imageName, pWidgetData->atlas);
+	ZONE_END(ctx)
 }
 
 void BackgroundBoxWidget_fromXML(struct UIWidget* pWidget, struct BackgroundBoxWidgetData* pWidgetData, struct DataNode* pDataNode, struct XMLUIData* pUILayerData)
 {
+	ZONE(ctx)
 	pWidgetData->scale.scaleX = 1.0f;
 	pWidgetData->scale.scaleY = 1.0f;
 
@@ -365,10 +388,13 @@ void BackgroundBoxWidget_fromXML(struct UIWidget* pWidget, struct BackgroundBoxW
 		pWidgetData->sprite = At_FindSprite(pWidgetData->imageName, pUILayerData->atlas);
 		pWidgetData->atlas = pUILayerData->atlas;
 	}
+	ZONE_END(ctx)
 }
 
 static void MakeWidgetIntoBackgroundBoxWidget(HWidget hWidget, struct DataNode* pXMLNode, struct XMLUIData* pUILayerData)
 {
+	ZONE(ctx)
+
 	struct UIWidget* pWidget = UI_GetWidget(hWidget);
 	pWidget->hNext = -1;
 	pWidget->hPrev = -1;
@@ -386,11 +412,14 @@ static void MakeWidgetIntoBackgroundBoxWidget(HWidget hWidget, struct DataNode* 
 	struct BackgroundBoxWidgetData* pWidgetData = pWidget->pImplementationData;
 
 	BackgroundBoxWidget_fromXML(pWidget, pWidgetData, pXMLNode, pUILayerData);
+	ZONE_END(ctx)
 }
 
 HWidget BackgroundBoxWidgetNew(HWidget hParent, struct DataNode* pXMLNode, struct XMLUIData* pUILayerData)
 {
+	ZONE(ctx)
 	HWidget hWidget = UI_NewBlankWidget();
 	MakeWidgetIntoBackgroundBoxWidget(hWidget, pXMLNode, pUILayerData);
+	ZONE_END(ctx)
 	return hWidget;
 }

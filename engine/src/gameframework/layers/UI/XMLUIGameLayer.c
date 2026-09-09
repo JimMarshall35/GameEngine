@@ -36,6 +36,7 @@
 #include "cwalk.h"
 #include "main.h"
 #include "XMLHelpers.h"
+#include "Profile.h"
 
 static struct HashMap gNodeNameMap;
 static bool gInitialisedNodeNameMap = false;
@@ -43,6 +44,7 @@ static bool gInitialisedNodeNameMap = false;
 
 static void InitializeNodeNameMap()
 {
+	ZONE(ctx)
 	HashmapInit(&gNodeNameMap, 20, sizeof(AddChildFn));
 
 	AddChildFn fn = &StackPanelWidgetNew;
@@ -65,20 +67,26 @@ static void InitializeNodeNameMap()
 	HashmapInsert(&gNodeNameMap, "canvas", &fn);
 	fn = &TextEntryWidgetNew;
 	HashmapInsert(&gNodeNameMap, "textInput", &fn);
+	ZONE_END(ctx)
 }
 
 
 AddChildFn LookupWidgetCtor(const char* widgetName)
 {
-	return *((AddChildFn*)HashmapSearch(&gNodeNameMap, widgetName));
+	ZONE(ctx)
+	AddChildFn fn = *((AddChildFn*)HashmapSearch(&gNodeNameMap, widgetName));
+	ZONE_END(ctx)
+	return fn;
 }
 
 static void FreeWidgetTree_internal(HWidget root, bool bFreeRoot)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(root);
 	struct UIWidget* pWidgetRoot = pWidget;
 	if (!pWidget)
 	{
+		ZONE_END(ctx)
 		return;
 	}
 
@@ -96,17 +104,21 @@ static void FreeWidgetTree_internal(HWidget root, bool bFreeRoot)
 	{
 		UI_DestroyWidget(root);
 	}
-
+	ZONE_END(ctx)
 }
 
 static void FreeWidgetTree(HWidget root)
 {
+	ZONE(ctx)
 	FreeWidgetTree_internal(root, true);
+	ZONE_END(ctx)
 }
 
 static void FreeWidgetChildren(HWidget root)
 {
+	ZONE(ctx)
 	FreeWidgetTree_internal(root, false);
+	ZONE_END(ctx)
 }
 
 /*
@@ -117,6 +129,7 @@ static void AddLuaTableSubTree(XMLUIData* pData, HWidget hParent)
 	/*
 		Add the lua node and its children here:
 	*/
+	ZONE(ctx)
 	struct DataNode node;
 	DN_InitForLuaTableOnTopOfStack(&node);
 	Sc_TableGet("type");
@@ -154,10 +167,12 @@ static void AddLuaTableSubTree(XMLUIData* pData, HWidget hParent)
 		Log_Error("error: child node in children table is not a string or is empty");
 		Sc_Pop();
 	}
+	ZONE_END(ctx)
 }
 
 static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 {
+	ZONE(ctx)
 	XMLUIData* pData = pLayer->userData;
 	TP_DoTimers(&pData->timerPool, deltaT);
 	if (VectorSize(pData->pChildrenChangeRequests))
@@ -201,20 +216,24 @@ static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 	}
 	pData->pChildrenChangeRequests = VectorClear(pData->pChildrenChangeRequests);
 	Sc_ResetStack();
+	ZONE_END(ctx)
 }
 
 static void UpdateRootWidget(XMLUIData* pData, DrawContext* dc)
 {
+	ZONE(ctx)
 	VectorClear(pData->pWidgetVertices);
 	struct UIWidget* pRootWidget = UI_GetWidget(pData->rootWidget);
 	pRootWidget->fnLayoutChildren(pRootWidget, NULL);
 	pData->pWidgetVertices = pRootWidget->fnOutputVertices(pRootWidget, pData->pWidgetVertices);
 	dc->UIVertexBufferData(pData->hVertexBuffer, pData->pWidgetVertices, VectorSize(pData->pWidgetVertices));
 	SetRootWidgetIsDirty(pData->rootWidget, false);
+	ZONE_END(ctx)
 }
 
 static void Draw(struct GameFrameworkLayer* pLayer, DrawContext* dc)
 {
+	ZONE(ctx)
 	XMLUIData* pData = pLayer->userData;
 	At_SetCurrent(pData->atlas, dc);
 	struct UIWidget* pRootWidget = UI_GetWidget(pData->rootWidget);
@@ -231,11 +250,13 @@ static void Draw(struct GameFrameworkLayer* pLayer, DrawContext* dc)
 	int size = VectorSize(pData->pWidgetVertices);
 
 	dc->DrawUIVertexBuffer(pData->hVertexBuffer, size);
+	ZONE_END(ctx)
 }
 
 
 static void* BuildWidgetsHoverred(VECTOR(HWidget) outWidgets, HWidget hWidget, float mouseX, float mouseY)
 {
+	ZONE(ctx)
 	GeomRect hitbox;
 	UI_GetHitBox(hitbox, hWidget);
 	if (Ge_PointInAABB(mouseX, mouseY, hitbox))
@@ -251,12 +272,14 @@ static void* BuildWidgetsHoverred(VECTOR(HWidget) outWidgets, HWidget hWidget, f
 			hChild = pChild->hNext;
 		}
 	}
+	ZONE_END(ctx)
 	return outWidgets;
 
 }
 
 static void Unfocus(XMLUIData* pUIData)
 {
+	ZONE(ctx)
 	for (int i = 0; i < pUIData->nFocusedWidgets; i++)
 	{
 		struct UIWidget* pWidget = UI_GetWidget(pUIData->focusedWidgets[i]);
@@ -268,10 +291,12 @@ static void Unfocus(XMLUIData* pUIData)
 		}
 	}
 	pUIData->nFocusedWidgets = 0;
+	ZONE_END(ctx)
 }
 
 static bool SendMouseDownAndFocus(struct WidgetMouseInfo* info, HWidget hWidget, XMLUIData* pUIData)
 {
+	ZONE(ctx)
 	Unfocus(pUIData);
 	struct UIWidget* pWidget = UI_GetWidget(hWidget);
 	bool rval = false;
@@ -286,11 +311,13 @@ static bool SendMouseDownAndFocus(struct WidgetMouseInfo* info, HWidget hWidget,
 		}
 	}
 	UI_SendWidgetMouseEvent(pWidget, WC_OnMouseDown, info);
+	ZONE_END(ctx)
 	return rval;
 }
 
 static void Input(struct GameFrameworkLayer* pLayer, InputContext* ctx)
 {
+	ZONE(ctx)
 	static VECTOR(HWidget) pWidgetsHovverred = NULL;
 	static VECTOR(HWidget) pWidgetsHovverredLastFrame = NULL;
 	static VECTOR(HWidget) pWidgetsEntered = NULL;
@@ -462,6 +489,7 @@ static void Input(struct GameFrameworkLayer* pLayer, InputContext* ctx)
 	{
 		Sc_CallFuncInRegTableEntryTable(pUIData->hViewModel, "OnInput", NULL, 0, 0);
 	}
+	ZONE_END(ctx)
 
 }
 
@@ -470,6 +498,7 @@ static void LoadUIData(XMLUIData* pUIData, DrawContext* pDC);
 
 static void OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)
 {
+	ZONE(ctx)
 	XMLUIData* pData = pLayer->userData;
 	pData->timerPool = TP_InitTimerPool(32);
 
@@ -493,11 +522,13 @@ static void OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, 
 	In_ActivateAxisBinding(pData->gMouseY, &mask);
 	In_ActivateAxisBinding(pData->gMouseX, &mask); /* TODO: this is incomplete: these */
 	In_SetMask(&mask, inputContext);
+	ZONE_END(ctx)
 }
 
 
 static void OnPop(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)
 {
+	ZONE(ctx)
 	XMLUIData* pData = pLayer->userData;
 	if (Sc_FunctionPresentInTable(pData->hViewModel, "OnXMLUILayerPop"))
 	{
@@ -518,10 +549,12 @@ static void OnPop(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, I
 	In_DeactivateAxisBinding(pData->gMouseX, &mask);
 	In_DeactivateAxisBinding(pData->gMouseY, &mask);
 	In_SetMask(&mask, inputContext);
+	ZONE_END(ctx)
 }
 
 void AddNodeChildren(HWidget widget, xmlNode* pNode, XMLUIData* pUIData)
 {
+	ZONE(ctx)
 	struct DataNode dataNode;
 	for (xmlNode* pChild = pNode->children; pChild; pChild = pChild->next)
 	{
@@ -547,17 +580,21 @@ void AddNodeChildren(HWidget widget, xmlNode* pNode, XMLUIData* pUIData)
 
 		AddNodeChildren(childWidget, pChild, pUIData);
 	}
+	ZONE_END(ctx)
 }
 
 
 
 void LoadAtlas(XMLUIData* pUIData, xmlNode* child0, DrawContext* pDC)
 {
+	ZONE(ctx)
 	pUIData->atlas = At_LoadAtlas(child0, pDC);
+	ZONE_END(ctx)
 }
 
 static bool TryLoadViewModel(XMLUIData* pUIData, xmlNode* pScreenNode)
 {
+	ZONE(ctx)
 	bool rVal = false;
 	bool bVMFileSet = false;
 	bool bVMFunctionSet = false;
@@ -601,12 +638,13 @@ static bool TryLoadViewModel(XMLUIData* pUIData, xmlNode* pScreenNode)
 	{
 		xmlFree(pFilePath);
 	}
-
+	ZONE_END(ctx)
 	return rVal;
 }
 
 static void InitializeWidgets(HWidget root)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(root);
 	if (pWidget->fnOnWidgetInit)
 	{
@@ -619,10 +657,12 @@ static void InitializeWidgets(HWidget root)
 		struct UIWidget* pWidget = UI_GetWidget(child);
 		child = pWidget->hNext;
 	}
+	ZONE_END(ctx)
 }
 
 static void LoadUIData(XMLUIData* pUIData, DrawContext* pDC)
 {
+	ZONE(ctx)
 	assert(!pUIData->bLoaded);
 	pUIData->bLoaded = true;
 	xmlDoc* pXMLDoc = xmlReadFile(pUIData->xmlFilePath, NULL, 0);
@@ -689,23 +729,31 @@ static void LoadUIData(XMLUIData* pUIData, DrawContext* pDC)
 
 		pUIData->hVertexBuffer = pDC->NewUIVertexBuffer(2048);
 	}
-
+	ZONE_END(ctx)
 }
 
 static void OnWindowSizeChanged(struct GameFrameworkLayer* pLayer, int newW, int newH)
 {
+	ZONE(ctx)
 	XMLUIData* pData = pLayer->userData;
 	RootWidget_OnWindowSizeChanged(pData->rootWidget, newW, newH);
 
 	struct UIWidget* pWidget = UI_GetWidget(pData->rootWidget);
 	SetRootWidgetIsDirty(pData->rootWidget, true);
+	ZONE_END(ctx)
 }
 
 
 void XMLUIGameLayer_Get(struct GameFrameworkLayer* pLayer, struct XMLUIGameLayerOptions* pOptions)
 {
+	ZONE(ctx)
 	pLayer->userData = malloc(sizeof(XMLUIData));
-	if (!pLayer->userData) { Log_Error("XMLUIGameLayer_Get: no memory"); return; }
+	if (!pLayer->userData) 
+	{ 
+		Log_Error("XMLUIGameLayer_Get: no memory"); 
+		ZONE_END(ctx)
+		return; 
+	}
 	XMLUIData* pUIData = (XMLUIData*)pLayer->userData;
 
 	memset(pLayer->userData, 0, sizeof(XMLUIData));
@@ -727,12 +775,14 @@ void XMLUIGameLayer_Get(struct GameFrameworkLayer* pLayer, struct XMLUIGameLayer
 	{
 		LoadUIData(pUIData, pOptions->pDc);
 	}
+	ZONE_END(ctx)
 
 }
 
 
 void XMLUI_PushGameFrameworkLayer(const char* xmlPath)
 {
+	ZONE(ctx)
 	struct GameFrameworkLayer testLayer;
 	memset(&testLayer, 0, sizeof(struct GameFrameworkLayer));
 	struct XMLUIGameLayerOptions options;
@@ -745,4 +795,5 @@ void XMLUI_PushGameFrameworkLayer(const char* xmlPath)
 	Log_Verbose("done");
 	Log_Verbose("pushing framework layer");
 	GF_PushGameFrameworkLayer(&testLayer);
+	ZONE_END(ctx)
 }

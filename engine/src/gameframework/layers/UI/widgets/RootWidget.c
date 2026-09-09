@@ -4,6 +4,7 @@
 #include <string.h>        
 #include <stdlib.h>
 #include "AssertLib.h"
+#include "Profile.h"
 
 float RootWidget_GetWidth(struct UIWidget* pWidget, struct UIWidget* pParent)
 {
@@ -17,6 +18,7 @@ float RootWidget_GetHeight(struct UIWidget* pWidget, struct UIWidget* pParent)
 
 void RootWidget_LayoutChildren(struct UIWidget* pThis, struct UIWidget* pParent, float scrollX, float scrollY)
 {
+	ZONE(ctx)
 	if (pThis->hFirstChild != NULL_HWIDGET)
 	{
 		struct UIWidget* pWidget = UI_GetWidget(pThis->hFirstChild);
@@ -85,25 +87,34 @@ void RootWidget_LayoutChildren(struct UIWidget* pThis, struct UIWidget* pParent,
 			}
 		}
 	}
+	ZONE_END(ctx)
 }
 
 void RootWidget_OnDestroy(struct UIWidget* pThis)
 {
+	ZONE(ctx)
 	free(pThis->pImplementationData);
+	ZONE_END(ctx)
 }
 
 static void* OnOutputVerts(struct UIWidget* pWidget, VECTOR(WidgetVertex) pOutVerts)
 {
-	return UI_Helper_OnOutputVerts(pWidget, pOutVerts);
+	ZONE(ctx)
+	void* p = UI_Helper_OnOutputVerts(pWidget, pOutVerts);
+	ZONE_END(ctx)
+	return p;
 }
 
 static void LayoutChildren(struct UIWidget* pThis, struct UIWidget* pParent)
 {
+	ZONE(ctx)
 	RootWidget_LayoutChildren(pThis, pParent, 0.0f, 0.0f);
+	ZONE_END(ctx)
 }
 
 void MakeIntoRootWidget(HWidget widget)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(widget);
 	struct RootWidgetData* pRootWidgetData = malloc(sizeof(struct RootWidgetData));
 	memset(pRootWidgetData, 0, sizeof(struct RootWidgetData));
@@ -124,17 +135,21 @@ void MakeIntoRootWidget(HWidget widget)
 	pWidget->width.data = pRootWidgetData->windowW;
 	pWidget->height.type = WD_Pixels;
 	pWidget->height.data = pRootWidgetData->windowH;
+	ZONE_END(ctx)
 }
 
 HWidget NewRootWidget()
 {
+	ZONE(ctx)
 	HWidget w = UI_NewBlankWidget();
 	MakeIntoRootWidget(w);
+	ZONE_END(ctx)
 	return w;
 }
 
 void RootWidget_OnWindowSizeChanged(HWidget rootWidget, int newW, int newH)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(rootWidget);
 	struct RootWidgetData* pRootData = pWidget->pImplementationData;
 	pRootData->windowH = newH;
@@ -142,19 +157,24 @@ void RootWidget_OnWindowSizeChanged(HWidget rootWidget, int newW, int newH)
 	pWidget->width.data = newW;
 	pWidget->height.data = newH;
 	pRootData->bIsDirty = true;
+	ZONE_END(ctx)
 }
 bool GetRootWidgetIsDirty(HWidget hRootWidget)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(hRootWidget);
 	struct RootWidgetData* pRootData = pWidget->pImplementationData;
+	ZONE_END(ctx)
 	return pRootData->bIsDirty;
 }
 
 // if dirty, a whole tree rebuild will be triggered
 void SetRootWidgetIsDirty(HWidget hRootWidget, bool bIsDirty)
 {
+	ZONE(ctx)
 	struct UIWidget* pWidget = UI_GetWidget(hRootWidget);
 	struct RootWidgetData* pRootData = pWidget->pImplementationData;
 	pRootData->bIsDirty = bIsDirty;
+	ZONE_END(ctx)
 }
 

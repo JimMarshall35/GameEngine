@@ -20,6 +20,7 @@
 #include "Game2DLayerNetwork.h"
 #include "main.h"
 #include "cwalk.h"
+#include "Profile.h"
 #include <math.h>
 
 int gTilesRendered = 0;
@@ -194,15 +195,18 @@ level_loaded:
 
 static void LoadLevelData(struct TileMap* pTileMap, const char* tilemapFilePath, DrawContext* pDC, hAtlas atlas, struct GameLayer2DData* pData)
 {
+	ZONE(ctx)
 	pTileMap->layers = NEW_VECTOR(struct TileMapLayer);
 	struct BinarySerializer bs;
 	memset(&bs, 0, sizeof(struct BinarySerializer));
 	BS_CreateForLoad(tilemapFilePath, &bs);
 	LoadLevelDataInternal(pTileMap, &bs, pDC, atlas, pData);
+	ZONE_END(ctx)
 }
 
 static void PublishDebugMessage(struct GameLayer2DData* pData)
 {
+	ZONE(ctx)
 	vec2 tl, br;
 	GetViewportWorldspaceTLBR(tl, br, &pData->camera, pData->windowW, pData->windowH);
 	sprintf(pData->debugMsg, "Tiles: %i zoom:%.2f tlx:%.2f tly:%.2f brx:%.2f bry:%.2f",
@@ -215,6 +219,7 @@ static void PublishDebugMessage(struct GameLayer2DData* pData)
 	arg.val.string = pData->debugMsg;
 	struct LuaListenedEventArgs args = { .numArgs = 1, .args = &arg };
 	Ev_FireEvent("DebugMessage", &args);
+	ZONE_END(ctx)
 }
 
 struct UpdateEntityContext
@@ -231,20 +236,25 @@ struct PostPhysEntityContext
 
 static bool PostPhysicsEntities(struct Entity2D* pEnt, int i, void* pUser)
 {
+	ZONE(ctx)
 	struct PostPhysEntityContext* pCtx = pUser;
 	pEnt->postPhys(pEnt, pCtx->pLayer, pCtx->deltaT);
+	ZONE_END(ctx)
 	return true;
 }
 
 static bool UpdateEntities(struct Entity2D* pEnt, int i, void* pUser)
 {
+	ZONE(ctx)
 	struct UpdateEntityContext* pCTX = pUser;
 	pEnt->update(pEnt, pCTX->pLayer, pCTX->deltaT);
+	ZONE_END(ctx)
 	return true;
 }
 
 void G2D_SaveLevelDataInternal(struct GameLayer2DData* pData, struct BinarySerializer* pBS)
 {
+	ZONE(ctx)
 	BS_SerializeU32(1, pBS);
 	
 	vec2 tl, br;
@@ -287,11 +297,13 @@ void G2D_SaveLevelDataInternal(struct GameLayer2DData* pData, struct BinarySeria
 			EASSERT(false);
 		}
 	}
+	ZONE_END(ctx)
 }
 
 
 static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 {
+	ZONE(ctx)
 	switch(NW_GetRole())
 	{
 	case GR_Client:
@@ -333,6 +345,7 @@ static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 	
 
 	Et2D_DoEntityMessagesQueue(&pData->entities, pLayer);
+	ZONE_END(ctx)
 }
 
 void OutputSpriteVertices(
@@ -345,6 +358,7 @@ void OutputSpriteVertices(
 	struct Transform2D* pTMLayerTransform
 )
 {
+	ZONE(ctx)
 	VECTOR(Worldspace2DVert) outVert = *pOutVert;
 	VECTOR(VertIndexT) outInd = *pOutInd;
 
@@ -423,6 +437,7 @@ void OutputSpriteVertices(
 
 	*pOutVert = outVert;
 	*pOutInd = outInd;
+	ZONE_END(ctx)
 }
 
 static void OutputTilemapLayerVertices(
@@ -435,6 +450,7 @@ static void OutputTilemapLayerVertices(
 	vec2 viewportBR
 )
 {
+	ZONE(ctx)
 	if(pLayer->tileWidthPx == 0 || pLayer->tileHeightPx == 0)
 	{
 		return;
@@ -479,6 +495,7 @@ static void OutputTilemapLayerVertices(
 
 	*outVerts = outVert;
 	*outInds = outInd;
+	ZONE_END(ctx)
 }
 
 /* Hack */
@@ -486,6 +503,7 @@ static struct Entity2DCollection* gEntityCollectionCurrent = NULL;
 
 static int EntityDrawOrderCompare(const void* a, const void* b)
 {
+	ZONE(ctx)
 	HEntity2D entA = *((HEntity2D*)a);
 	HEntity2D entB = *((HEntity2D*)b);
 	struct Entity2D* pEntA = Et2D_GetEntity(gEntityCollectionCurrent, entA);
@@ -501,11 +519,13 @@ static int EntityDrawOrderCompare(const void* a, const void* b)
 	{
 		return -1; /* place first argument before second */
 	}
+	ZONE_END(ctx)
 	return 1;      /* place second argument before first */
 }
 
 VECTOR(HEntity2D) Et2D_QueryDynEntities(struct GameFrameworkLayer* pLayer, struct Entity2DCollection* pCollection, vec2 regionTL, vec2 regionBR, VECTOR(HEntity2D) pOutEntities)
 {
+	ZONE(ctx)
 	struct DynamicEnt2DList* pList = &pCollection->dynamicEntities;
 	HDynamicEntityListItem hOn = NULL_HANDLE;
 	hOn = pList->hDynamicListHead;
@@ -521,6 +541,7 @@ VECTOR(HEntity2D) Et2D_QueryDynEntities(struct GameFrameworkLayer* pLayer, struc
 		}
 		hOn = pItem->hNext;
 	}
+	ZONE_END(ctx)
 	return pOutEntities;
 } 
 
@@ -539,6 +560,7 @@ static void OutputVertices(
 	struct GameFrameworkLayer* pLayer
 )
 {
+	ZONE(ctx)
 	VECTOR(Worldspace2DVert) verts = *outVerts;
 	VECTOR(VertIndexT) inds = *outIndices;
 	static VECTOR(HEntity2D) sFoundEnts = NULL;
@@ -590,10 +612,12 @@ static void OutputVertices(
 
 	*outVerts = verts;
 	*outIndices = inds;
+	ZONE_END(ctx)
 }
 
 static void Draw(struct GameFrameworkLayer* pLayer, DrawContext* context)
 {
+	ZONE(ctx)
 	struct GameLayer2DData* pData = pLayer->userData;
 
 	if(pData->bSkipDraw)
@@ -627,6 +651,7 @@ static void Draw(struct GameFrameworkLayer* pLayer, DrawContext* context)
 
 	context->DrawWorldspaceVertexBuffer(pData->vertexBuffer, VectorSize(pData->pWorldspaceIndices), view);
 	context->DrawWorldspaceLineVertexBuffer(pData->lineBuffer, VectorSize(pData->pWorldspaceLineVertices), view);
+	ZONE_END(ctx)
 }
 
 
@@ -638,13 +663,16 @@ struct InputEntityContext
 
 static bool InputEntities(struct Entity2D* pEnt, int i, void* pUser)
 {
+	ZONE(ctx)
 	struct InputEntityContext* pCtx = pUser;
 	pEnt->input(pEnt, pCtx->pLayer, pCtx->inputCtx);
+	ZONE_END(ctx)
 	return true;
 }
 
 static void Input(struct GameFrameworkLayer* pLayer, InputContext* context)
 {
+	ZONE(ctx)
 	struct GameLayer2DData* pData = pLayer->userData;
 	if (pData->bDebugLayerAttatched)
 	{
@@ -659,7 +687,7 @@ static void Input(struct GameFrameworkLayer* pLayer, InputContext* context)
 		};
 		Et2D_IterateEntities(&pData->entities, &InputEntities, &ctx);
 	}
-	
+	ZONE_END(ctx)
 }
 
 /// @brief Not a robust or in any way a good implementation
@@ -668,6 +696,7 @@ static void Input(struct GameFrameworkLayer* pLayer, InputContext* context)
 /// @param outDims 
 static void FindQuadtreeDims(VECTOR(struct TileMapLayer) layers, vec2 outPos, vec2 outDims)
 {
+	ZONE(ctx)
 	outPos[0] = INFINITY;
 	outPos[1] = INFINITY;
 
@@ -694,10 +723,12 @@ static void FindQuadtreeDims(VECTOR(struct TileMapLayer) layers, vec2 outPos, ve
 			outDims[1] = pLayer->heightTiles;
 		}
 	}
+	ZONE_END(ctx)
 }
 
 static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 {
+	ZONE(ctx)
 	struct BinarySerializer bs;
 	memset(&bs, 0, sizeof(struct BinarySerializer));
 	BS_CreateForLoad(pData->atlasFilePath, &bs);
@@ -733,11 +764,13 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 	}
 	
 	pData->bLoaded = true;
+	ZONE_END(ctx)
 }
 
 
 void Game2DLayer_ActivateFreeLookMode(InputContext* inputContext, struct GameLayer2DData* pData)
 {
+	ZONE(ctx)
 	In_SetMask(&pData->freeLookCtrls.freeLookInputsMask, inputContext);
 	struct GameFrameworkLayer testLayer;
     memset(&testLayer, 0, sizeof(struct GameFrameworkLayer));
@@ -751,6 +784,7 @@ void Game2DLayer_ActivateFreeLookMode(InputContext* inputContext, struct GameLay
     testLayer.flags |= ( EnableOnPush | EnableOnPop );
 
     GF_PushGameFrameworkLayer(&testLayer);
+	ZONE_END(ctx)
 }
 
 static void OnDebugLayerPushed(void* pUserData, void* pEventData)
@@ -761,6 +795,7 @@ static void OnDebugLayerPushed(void* pUserData, void* pEventData)
  
 static bool NetworkUpdateWorldstateCallback(struct SDTimer* pTimer)
 {
+	ZONE(ctx)
 	switch(NW_GetRole())
 	{
 	case GR_Client:
@@ -780,11 +815,13 @@ static bool NetworkUpdateWorldstateCallback(struct SDTimer* pTimer)
 		}
 		break;
 	}
+	ZONE_END(ctx)
 	return false;
 }
 
 void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)
 {
+	ZONE(ctx)
 	struct GameLayer2DData* pData = pLayer->userData;
 	pData->pLayer = pLayer;
 	Et2D_InitCollection(&pData->entities);
@@ -825,10 +862,12 @@ void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawCont
 		};
 		pData->hNetworkStateUpdateTimer = TP_GetTimer(&pData->timerPool, &timerDef);
 	}
+	ZONE_END(ctx)
 }
 
 void Game2DLayer_OnPop(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)
 {
+	ZONE(ctx)
 	struct GameLayer2DData* pData = pLayer->userData;
 	EASSERT(pData->pDebugListener);
 	Et2D_DestroyCollection(&pData->entities, pLayer);
@@ -839,6 +878,7 @@ void Game2DLayer_OnPop(struct GameFrameworkLayer* pLayer, DrawContext* drawConte
 	DestoryVector(pData->pWorldspaceVertices);
 	DestoryVector(pData->pWorldspaceIndices);
 	DestoryVector(pData->pWorldspaceLineVertices);
+	ZONE_END(ctx)
 }
 
 static void OnWindowDimsChange(struct GameFrameworkLayer* pLayer, int newW, int newH)
@@ -850,6 +890,7 @@ static void OnWindowDimsChange(struct GameFrameworkLayer* pLayer, int newW, int 
 
 void Game2DLayer_Get(struct GameFrameworkLayer* pLayer, struct Game2DLayerOptions* pOptions, DrawContext* pDC)
 {
+	ZONE(ctx)
 	pLayer->userData = malloc(sizeof(struct GameLayer2DData));
 	memset(pLayer->userData, 0, sizeof(struct GameLayer2DData));
 	struct GameLayer2DData* pData = pLayer->userData;
@@ -893,20 +934,24 @@ void Game2DLayer_Get(struct GameFrameworkLayer* pLayer, struct Game2DLayerOption
 	pData->Generator = pOptions->Generator;
 
 	pData->pGeneratorUserData = pOptions->pGeneratorUserData;
+	ZONE_END(ctx)
 }
 
 void Game2DLayer_SaveLevelFile(struct GameLayer2DData* pData, const char* outputFilePath)
 {
+	ZONE(ctx)
 	struct BinarySerializer bs;
 	memset(&bs, 0, sizeof(struct BinarySerializer));
 	BS_CreateForSave(outputFilePath, &bs);
 	G2D_SaveLevelDataInternal(pData, &bs);
 	BS_Finish(&bs);
+	ZONE_END(ctx)
 }
 
 
 void Et2D_Transform2DToMat3(struct Transform2D* pTrans, mat3 out)
 {
+	ZONE(ctx)
     mat3 scale = 
     {
         {pTrans->scale[0],                0, 0},
@@ -932,4 +977,5 @@ void Et2D_Transform2DToMat3(struct Transform2D* pTrans, mat3 out)
     // };
     //glm_mat3_mul(scale, rot, out);
     glm_mat3_mul(trans, scale, out);
+	ZONE_END(ctx)
 }
