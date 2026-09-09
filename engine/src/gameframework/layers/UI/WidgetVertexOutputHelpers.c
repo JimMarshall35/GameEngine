@@ -166,6 +166,7 @@ void* OutputWidgetQuad(VECTOR(WidgetVertex) pOutVerts, const WidgetQuad* pQuad)
 	{
 		if (!ClipQuad(&cpy))
 		{
+			ZONE_END(ctx)
 			return pOutVerts;
 		}
 	}

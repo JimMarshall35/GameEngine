@@ -17,7 +17,9 @@ static float GetWidth(struct UIWidget* pWidget, struct UIWidget* pParent)
 	if (pWidget->hFirstChild != NULL_HWIDGET)
 	{
 		struct UIWidget* pFirstChild = UI_GetWidget(pWidget->hFirstChild);
-		return pFirstChild->fnGetWidth(pFirstChild, pWidget) + pWidget->padding.paddingLeft + pWidget->padding.paddingRight;
+		float w = pFirstChild->fnGetWidth(pFirstChild, pWidget) + pWidget->padding.paddingLeft + pWidget->padding.paddingRight;
+		ZONE_END(ctx)
+		return w;
 	}
 	ZONE_END(ctx)
 	return 0.0f;
@@ -30,7 +32,9 @@ static float GetHeight(struct UIWidget* pWidget, struct UIWidget* pParent)
 	if (pWidget->hFirstChild != NULL_HWIDGET)
 	{
 		struct UIWidget* pFirstChild = UI_GetWidget(pWidget->hFirstChild);
-		return pFirstChild->fnGetHeight(pFirstChild, pWidget) + pWidget->padding.paddingTop + pWidget->padding.paddingBottom;
+		float h = pFirstChild->fnGetHeight(pFirstChild, pWidget) + pWidget->padding.paddingTop + pWidget->padding.paddingBottom;
+		ZONE_END(ctx)
+		return h;
 	}
 	ZONE_END(ctx)
 	return 0.0f;
@@ -159,11 +163,15 @@ void* BackgroundBoxWidget_OutputVerts(
 
 	if (widgetWidth <= pAtlasSprite->widthPx * pBBoxData->scale.scaleX && widgetHeight > pAtlasSprite->heightPx * pBBoxData->scale.scaleY)
 	{
-		return OnOutputVerts_3StripsVertical(pBBoxData, pOutVerts, totalWidth, totalHeight, padding, left, top);
+		void* p = OnOutputVerts_3StripsVertical(pBBoxData, pOutVerts, totalWidth, totalHeight, padding, left, top);
+		ZONE_END(ctx)
+		return p;
 	}
 	else if (widgetWidth > pAtlasSprite->widthPx * pBBoxData->scale.scaleX && widgetHeight <= pAtlasSprite->heightPx * pBBoxData->scale.scaleY)
 	{
-		return OnOutputVerts_3StripsHorizontal(pBBoxData, pOutVerts, totalWidth, totalHeight, padding, left, top);
+		void* p = OnOutputVerts_3StripsHorizontal(pBBoxData, pOutVerts, totalWidth, totalHeight, padding, left, top);
+		ZONE_END(ctx)
+		return p;
 	}
 
 	// widget is bigger in both dimensions than the sprite - do 9 panel scaling.
@@ -361,6 +369,7 @@ void BackgroundBoxWidget_fromXML(struct UIWidget* pWidget, struct BackgroundBoxW
 		if(!len)
 		{
 			Log_Warning("empty string");
+			ZONE_END(ctx)
 			return;
 		}
 		char* val = malloc(len + 1);

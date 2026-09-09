@@ -205,6 +205,7 @@ struct GameFrameworkLayer* GF_GetLayerBelow(struct GameFrameworkLayer* pLayer)
 	{
 		if (pLast == pLayer)
 		{
+			ZONE_END(ctx)
 			return &gLayerStack[i];
 		}
 		pLast = &gLayerStack[i];

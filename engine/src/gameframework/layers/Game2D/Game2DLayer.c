@@ -453,6 +453,7 @@ static void OutputTilemapLayerVertices(
 	ZONE(ctx)
 	if(pLayer->tileWidthPx == 0 || pLayer->tileHeightPx == 0)
 	{
+		ZONE_END(ctx)
 		return;
 	}
 
@@ -513,10 +514,12 @@ static int EntityDrawOrderCompare(const void* a, const void* b)
 	float bval =  pEntB->getSortPos(pEntB);
 	if(CompareFloat(aval, bval))
 	{
+		ZONE_END(ctx)
 		return 0;
 	}
 	if(aval < bval)
 	{
+		ZONE_END(ctx)
 		return -1; /* place first argument before second */
 	}
 	ZONE_END(ctx)
@@ -623,6 +626,7 @@ static void Draw(struct GameFrameworkLayer* pLayer, DrawContext* context)
 	if(pData->bSkipDraw)
 	{
 		pData->bSkipDraw = false;
+		ZONE_END(ctx)
 		return;
 	}
 	At_SetCurrent(pData->hAtlas, context);
@@ -752,6 +756,7 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 		pData->hEntitiesQuadTree = GetEntity2DQuadTree(&initArgs);
 
 		pData->bLoaded = true;
+		ZONE_END(ctx)
 		return;
 	}
 	if(NW_GetRole() == GR_Client)

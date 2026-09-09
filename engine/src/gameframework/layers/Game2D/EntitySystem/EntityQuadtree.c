@@ -216,6 +216,7 @@ void Entity2DQuadTree_Remove(HEntity2DQuadtreeNode quadTree, HEntity2DQuadtreeEn
     struct Entity2DQuadtreeNode* pNode = &gNodePool[gEntityRefPool[ent].hParentNode];
     struct Entity2DQuadTreeEntityRef* pEntRef = &gEntityRefPool[ent];
     pEntRef->hEntity = NULL_HANDLE;
+    ZONE_END(ctx)
     return; // hack
     pNode->numEntities--;
 

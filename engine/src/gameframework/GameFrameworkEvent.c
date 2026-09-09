@@ -96,6 +96,7 @@ bool Ev_UnsubscribeEvent(struct GameFrameworkEventListener* pListener)
 			pListener->pPrev->pNext = pListener->pNext;
 		}
 		free(pListener);
+		ZONE_END(ctx)
 		return true;
 	}
 	else

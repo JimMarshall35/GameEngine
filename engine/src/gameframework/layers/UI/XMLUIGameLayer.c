@@ -240,6 +240,7 @@ static void Draw(struct GameFrameworkLayer* pLayer, DrawContext* dc)
 	if (!pRootWidget)
 	{
 		Log_Error("something wrong");
+		ZONE_END(ctx)
 		return;
 	}
 
@@ -568,6 +569,7 @@ void AddNodeChildren(HWidget widget, xmlNode* pNode, XMLUIData* pUIData)
 		{
 			// log error
 			Log_Error("error occured");
+			ZONE_END(ctx)
 			return;
 		}
 		HWidget childWidget = pCtor(widget, &dataNode, pUIData);
@@ -684,6 +686,7 @@ static void LoadUIData(XMLUIData* pUIData, DrawContext* pDC)
 		{
 			Log_Error("%s root should have 2 kids", __FUNCTION__);
 			xmlFreeDoc(pXMLDoc);
+			ZONE_END(ctx)
 			return;
 		}
 		xmlNode* child0 = GetNthChild(root, 0);

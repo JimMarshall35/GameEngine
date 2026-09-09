@@ -54,6 +54,7 @@ void* StaticWidget_OnOutputVerts(struct StaticWidgetData* pStaticData, float lef
 	AtlasSprite* pSprite = At_GetSprite(pStaticData->sprite, pStaticData->atlas);
 	if(!pSprite)
 	{
+		ZONE_END(ctx)
 		return pOutVerts; /* sometimes hit for some reason */
 	}
 	float width = pSprite->widthPx;
