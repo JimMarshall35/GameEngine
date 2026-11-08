@@ -27,6 +27,7 @@
 #include "SliderWidget.h"
 #include "CanvasWidget.h"
 #include "TextEntryWidget.h"
+#include "BarWidget.h"
 #include "DataNode.h"
 #include "StringKeyHashMap.h"
 #include "GameFrameworkEvent.h"
@@ -67,6 +68,8 @@ static void InitializeNodeNameMap()
 	HashmapInsert(&gNodeNameMap, "canvas", &fn);
 	fn = &TextEntryWidgetNew;
 	HashmapInsert(&gNodeNameMap, "textInput", &fn);
+	fn = &BarWidgetNew;
+	HashmapInsert(&gNodeNameMap, "bar", &fn);
 	ZONE_END(ctx)
 }
 

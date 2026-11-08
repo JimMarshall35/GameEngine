@@ -13,6 +13,13 @@ typedef enum
 	VT_NUM
 }WidgetQuadVertexLocation;
 
+enum WidgetHorizontalOrVertical
+{
+	WI_Horizontal,
+	WI_Vertical
+};
+
+
 struct Vert2DColourTexture;
 typedef struct Vert2DColourTexture WidgetVertex;
 struct Vert2DColourTextureQuad;
@@ -34,4 +41,17 @@ void SetWidgetQuadColour(WidgetQuad* pQuad, float r, float g, float b, float a);
 /// @param clipRect
 void SetClipRect(GeomRect clipRect);
 void UnsetClipRect();
+
+
+
+void ThreePanelScale(
+	float left,
+	float top,
+	WidgetQuad* pOutQuads,
+	enum WidgetHorizontalOrVertical orientation,
+	float lengthPx,
+	hSprite sprite,
+	hAtlas atlas
+);
+
 #endif

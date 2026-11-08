@@ -191,7 +191,14 @@ void* SliderWidget_OnOutputVerts(VECTOR(WidgetVertex) pOutVerts, struct SliderDa
 	WidgetQuad rail[4];
 	top = top + pPadding->paddingTop;
 	left = left + pPadding->paddingLeft;
-	Populate3PanelRailQuads(left, top, rail, pData);
+	ThreePanelScale(
+		left, top,
+		rail,
+		pData->orientation == SO_Horizontal ? WI_Horizontal : WI_Vertical,
+		pData->lengthPx,
+		pData->railStaticData.sprite,
+		pData->railStaticData.atlas
+	);
 	PopulateSliderQuad(left, top, &rail[3], pData);
 	return OutputWidgetQuads(pOutVerts, rail, 4);
 }
@@ -321,7 +328,6 @@ static void ParseBindingEspressionAttribute(char* attribName, char* attribConten
 	{
 		Log_Error("invalid property binding: %s", attribContent);
 	}
-
 }
 
 static void MakeSliderFromXML(struct UIWidget* pWidget, struct SliderData* pData, struct DataNode* pXMLNode, struct XMLUIData* pUILayerData)
@@ -336,11 +342,11 @@ static void MakeSliderFromXML(struct UIWidget* pWidget, struct SliderData* pData
 		"sliderScaleY");
 	if(pXMLNode->fnGetPropType(pXMLNode, "orientation") == DN_String)
 	{
-		if(pXMLNode->fnContentStrCmp(pXMLNode, "horizontal"))
+		if(pXMLNode->fnStrCmp(pXMLNode, "orientation", "horizontal"))
 		{
 			pData->orientation = SO_Horizontal;
 		}
-		else if (pXMLNode->fnContentStrCmp(pXMLNode, "vertical"))
+		else if (pXMLNode->fnStrCmp(pXMLNode, "orientation", "vertical"))
 		{
 			pData->orientation = SO_Vertical;
 		}
