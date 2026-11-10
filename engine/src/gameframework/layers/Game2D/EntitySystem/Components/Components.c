@@ -7,6 +7,13 @@
 #include "Sprite.h"
 #include "AnimatedSprite.h"
 
+static InitComponentsFn gGameInit = NULL;
+static UpdateComponentsFn gGameUpdate = NULL;
+static UpdatePostPhysComponentsFn gGamePostPhys = NULL;
+static InputComponentsFn gGameInput = NULL;
+static DestroyComponentsFn gGameDestroy = NULL;
+static DrawComponentsFn gGameDraw = NULL;
+
 void Co_InitComponents(struct Entity2D* entity, struct GameFrameworkLayer* pLayer)
 {
     struct GameLayer2DData* pGameLayerData = pLayer->userData;
@@ -58,7 +65,14 @@ void Co_InitComponents(struct Entity2D* entity, struct GameFrameworkLayer* pLaye
             }
             break;
         default:
-            EASSERT(false);
+            if(gGameInit)
+            {
+                gGameInit(&entity->components[i], entity, pLayer);
+            }
+            else
+            {
+                EASSERT(false);
+            }
         }
     }
 }
@@ -82,14 +96,47 @@ void Co_UpdateComponents(struct Entity2D* entity, struct GameFrameworkLayer* pLa
         case ETE_Tiles:
             break;
         default:
-            EASSERT(false);
+            if(gGameUpdate)
+            {
+                gGameUpdate(&entity->components[i], entity, pLayer, deltaT);
+            }
+            else
+            {
+                EASSERT(false);
+            }
         }
     }
 }
 
 void Co_Entity2DUpdatePostPhysicsFn(struct Entity2D* pEnt, struct GameFrameworkLayer* pLayer, float deltaT)
 {
-
+    for(int i=0; i<pEnt->numComponents; i++)
+    {
+        switch(pEnt->components[i].type)
+        {
+        case ETE_Sprite:
+            break;
+        case ETE_StaticCollider:
+            break;
+        case ETE_DynamicCollider:
+            break;
+        case ETE_TextSprite:
+            break;
+        case ETE_SpriteAnimator:
+            break;
+        case ETE_Tiles:
+            break;
+        default:
+            if(gGamePostPhys)
+            {
+                gGamePostPhys(&pEnt->components[i], pEnt, pLayer, deltaT);
+            }
+            else
+            {
+                EASSERT(false);
+            }
+        }
+    }
 }
 
 void Co_InputComponents(struct Entity2D* entity, struct GameFrameworkLayer* pLayer, InputContext* context)
@@ -111,7 +158,14 @@ void Co_InputComponents(struct Entity2D* entity, struct GameFrameworkLayer* pLay
         case ETE_Tiles:
             break;
         default:
-            EASSERT(false);
+            if(gGameInput)
+            {
+                gGameInit(&entity->components[i], entity, pLayer);
+            }
+            else
+            {
+                EASSERT(false);
+            }
         }
     }
 }
@@ -148,7 +202,14 @@ void Co_DestroyComponents(struct Entity2D* entity, struct GameFrameworkLayer* pL
             }
             break;
         default:
-            EASSERT(false);
+            if(gGameDestroy)
+            {
+                gGameDestroy(&entity->components[i], entity, pLayer);
+            }
+            else
+            {
+                EASSERT(false);
+            }
         }
     }
 }
@@ -198,7 +259,32 @@ void Co_DrawComponents(
         case ETE_Tiles:
             break;
         default:
-            EASSERT(false);
+            if(gGameDraw)
+            {
+                gGameDraw(&entity->components[i], entity, pLayer, pCam, outVerts, outIndices, pNextIndex);
+            }
+            else
+            {
+                EASSERT(false);
+            }
         }
     }
+}
+
+
+void Co_RegisterGameComponentHandlers(
+    InitComponentsFn init,
+    UpdateComponentsFn update,
+    UpdatePostPhysComponentsFn postPhys,
+    InputComponentsFn input,
+    DestroyComponentsFn destroy,
+    DrawComponentsFn draw
+)
+{
+    gGameInit = init;
+    gGameUpdate = update;
+    gGamePostPhys = postPhys;
+    gGameInput = input;
+    gGameDestroy = destroy;
+    gGameDraw = draw;
 }

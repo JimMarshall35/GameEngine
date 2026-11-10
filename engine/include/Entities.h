@@ -9,6 +9,17 @@
 #include <box2d/box2d.h>
 #include <stdbool.h>
 
+/*
+    game must provide this; defines COMPONENTS_UNION.
+    If you have a game that doesn't define any components, just
+    comment this line and the "#ifndef COMPONENTS_UNION" lines out.
+*/
+#include "GameComponents.h"
+
+#ifndef COMPONENTS_UNION
+#error "GameComponents.h must define COMPONENTS_UNION"
+#endif
+
 struct Entity2D;
 struct Entity2DCollection;
 struct GameFrameworkLayer;
@@ -128,25 +139,37 @@ struct TilesComponent
     int numTiles;
 };
 
+#define ENGINE_BUILTIN_COMPONENTS \
+        struct Sprite sprite;\
+        struct StaticCollider staticCollider;\
+        struct DynamicCollider dynamicCollider;\
+        struct TextSprite textSprite;\        
+        struct AnimatedSprite spriteAnimator;\
+        struct TilesComponent tiles;
+    
+#define COMPONENTS_UNION_BEGIN  union {
+#define COMPONENTS_UNION_END }data;
+
+    
+#ifndef COMPONENTS_UNION
+#define COMPONENTS_UNION \
+    COMPONENTS_UNION_BEGIN \
+    ENGINE_BUILTIN_COMPONENTS \
+    COMPONENTS_UNION_END
+#endif
+
+struct Component2D;
+
+typedef bool (*AcceptsMsgFn)(struct Component2D* pComponent, int msgType, struct Entity2D* pSender, struct GameFrameworkLayer* pLayer);
+typedef bool (*ProcessMsgFn)(struct Component2D* pComponent, struct EntityToEntityMessage* pMsg, struct Entity2D* pRecipient, struct Entity2D* pSender, struct GameFrameworkLayer* pLayer);
+
 /// @brief An entity component tagged union - there are a fixed number built into the engine
 struct Component2D
 {
     enum ComponentType type;
-    union
-    {
-        struct Sprite sprite;
-
-        struct StaticCollider staticCollider;
-
-        struct DynamicCollider dynamicCollider;
-
-        struct TextSprite textSprite;
-        
-        struct AnimatedSprite spriteAnimator;
-
-        struct TilesComponent tiles;
-    }data;
-    
+    COMPONENTS_UNION
+    AcceptsMsgFn acceptsMsg;
+    ProcessMsgFn processMsg;
 };
 
 enum EngineBuiltinEntityType

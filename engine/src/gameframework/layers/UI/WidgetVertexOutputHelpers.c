@@ -267,35 +267,95 @@ void ThreePanelScale(
 	case WI_Vertical:
 		{
 			AtlasSprite* pSprite = At_GetSprite(sprite, atlas);
-			vec2 tl = { 0,0 };
-			vec2 br = { pSprite->widthPx, pSprite->heightPx / 3.0f };
-			vec2 addition = { 0, pSprite->heightPx / 3.0f };
-			PopulateWidgetQuad(&pOutQuads[0], pSprite, tl, br);
-			glm_vec2_add(tl, addition, tl);
-			glm_vec2_add(br, addition, br);
-			PopulateWidgetQuad(&pOutQuads[1], pSprite, tl, br);
-			glm_vec2_add(tl, addition, tl);
-			glm_vec2_add(br, addition, br);
-			PopulateWidgetQuad(&pOutQuads[2], pSprite, tl, br);
-			
-			vec2 trans = {
-				0,
-				lengthPx - pSprite->heightPx / 3
-			};
-			
-			TranslateWidgetQuad(trans, &pOutQuads[2]);
-			pOutQuads[1].v[VL_TL].y = pOutQuads[0].v[VL_BL].y;
-			pOutQuads[1].v[VL_TR].y = pOutQuads[0].v[VL_BR].y;
-			pOutQuads[1].v[VL_BL].y = pOutQuads[2].v[VL_TL].y;
-			pOutQuads[1].v[VL_BR].y = pOutQuads[2].v[VL_TR].y;
-			for (int i = 0; i < 3; i++)
+			if(lengthPx >= (pSprite->heightPx / 3.0f) * 2)
 			{
-				TranslateWidgetQuad(a2, &pOutQuads[i]);
+				vec2 tl = { 0,0 };
+				vec2 br = { pSprite->widthPx, pSprite->heightPx / 3.0f };
+				vec2 addition = { 0, pSprite->heightPx / 3.0f };
+				PopulateWidgetQuad(&pOutQuads[0], pSprite, tl, br);
+				glm_vec2_add(tl, addition, tl);
+				glm_vec2_add(br, addition, br);
+				PopulateWidgetQuad(&pOutQuads[1], pSprite, tl, br);
+				glm_vec2_add(tl, addition, tl);
+				glm_vec2_add(br, addition, br);
+				PopulateWidgetQuad(&pOutQuads[2], pSprite, tl, br);
+				
+				vec2 trans = {
+					0,
+					lengthPx - pSprite->heightPx / 3
+				};
+				
+				TranslateWidgetQuad(trans, &pOutQuads[2]);
+				pOutQuads[1].v[VL_TL].y = pOutQuads[0].v[VL_BL].y;
+				pOutQuads[1].v[VL_TR].y = pOutQuads[0].v[VL_BR].y;
+				pOutQuads[1].v[VL_BL].y = pOutQuads[2].v[VL_TL].y;
+				pOutQuads[1].v[VL_BR].y = pOutQuads[2].v[VL_TR].y;
+				
 			}
+			else if(lengthPx > (pSprite->heightPx / 3.0f))
+			{
+				vec2 tl = { 0, pSprite->heightPx - lengthPx };
+				vec2 br = { pSprite->widthPx, pSprite->heightPx / 3.0f };
+				vec2 addition = { 0, pSprite->heightPx / 3.0f };
+				PopulateWidgetQuad(&pOutQuads[0], pSprite, tl, br);
+
+				tl[1] = br[1];
+
+				PopulateWidgetQuad(&pOutQuads[1], pSprite, tl, br);
+
+				br[1] += pSprite->heightPx / 3.0f;
+				glm_vec2_add(tl, addition, tl);
+				glm_vec2_add(br, addition, br);
+				PopulateWidgetQuad(&pOutQuads[2], pSprite, tl, br);
+
+				vec2 trans0 = {
+					0,
+					((pSprite->heightPx / 3) * 2) - lengthPx
+				};
+				TranslateWidgetQuad(trans0, &pOutQuads[0]);
+
+				vec2 trans = {
+					0,
+					lengthPx - pSprite->heightPx / 3
+				};
+				
+				TranslateWidgetQuad(trans, &pOutQuads[2]);
+
+				pOutQuads[1].v[VL_TL].y = pOutQuads[0].v[VL_BL].y;
+				pOutQuads[1].v[VL_TR].y = pOutQuads[0].v[VL_BR].y;
+				pOutQuads[1].v[VL_BL].y = pOutQuads[2].v[VL_TL].y;
+				pOutQuads[1].v[VL_BR].y = pOutQuads[2].v[VL_TR].y;
+
+
+			}
+			else
+			{
+				vec2 tl = { 0, pSprite->heightPx - lengthPx };
+				vec2 br = { pSprite->widthPx, pSprite->heightPx - lengthPx };
+				PopulateWidgetQuad(&pOutQuads[0], pSprite, tl, br);
+				PopulateWidgetQuad(&pOutQuads[1], pSprite, tl, br);
+				br[1] = pSprite->heightPx;
+				PopulateWidgetQuad(&pOutQuads[2], pSprite, tl, br);
+
+				vec2 trans = {
+					0,
+					lengthPx - pSprite->heightPx / 3
+				};
+				
+				TranslateWidgetQuad(trans, &pOutQuads[2]);
+
+				// pOutQuads[1].v[VL_TL].y = pOutQuads[0].v[VL_BL].y;
+				// pOutQuads[1].v[VL_TR].y = pOutQuads[0].v[VL_BR].y;
+				// pOutQuads[1].v[VL_BL].y = pOutQuads[2].v[VL_TL].y;
+				// pOutQuads[1].v[VL_BR].y = pOutQuads[2].v[VL_TR].y;
+
+			}
+			
 			break;
 		}
 	case WI_Horizontal:
 		{
+			/* TODO: Handle this as the vertical one is handled*/
 			AtlasSprite* pSprite = At_GetSprite(sprite, atlas);
 			vec2 tl = { 0,0 };
 			vec2 br = { pSprite->widthPx/3, pSprite->heightPx };
@@ -317,11 +377,12 @@ void ThreePanelScale(
 			pOutQuads[1].v[VL_BL].x = pOutQuads[0].v[VL_BR].x;
 			pOutQuads[1].v[VL_TR].x = pOutQuads[2].v[VL_TL].x;
 			pOutQuads[1].v[VL_BR].x = pOutQuads[2].v[VL_BL].x;
-			for (int i = 0; i < 3; i++)
-			{
-				TranslateWidgetQuad(a2, &pOutQuads[i]);
-			}
+
 			break;
 		}
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		TranslateWidgetQuad(a2, &pOutQuads[i]);
 	}
 }

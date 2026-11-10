@@ -21,6 +21,8 @@ void* BarWidget_OnOutputVerts(
 	WidgetQuad quads[6];
 	top = top + pPadding->paddingTop;
 	left = left + pPadding->paddingLeft;
+	float f = fabs(pData->fVal);
+	f = f > 1.0f ? 1.0f : f;
 
     /* frame */
     ThreePanelScale(
@@ -37,7 +39,7 @@ void* BarWidget_OnOutputVerts(
         left, top,
         quads + 3,
         pData->orientation == BO_Horizontal ? WI_Horizontal : WI_Vertical,
-        pData->lengthPx * pData->fVal,
+        pData->lengthPx * f,
         pData->fillStaticData.sprite,
         pData->fillStaticData.atlas
     );

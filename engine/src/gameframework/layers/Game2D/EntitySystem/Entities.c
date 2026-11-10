@@ -678,6 +678,16 @@ void Et2D_DoEntityMessagesQueue(struct Entity2DCollection* pCollection, struct G
     {
         struct EntityToEntityMessage* pMsg = &pCollection->messageQueue[i];
         struct Entity2D* pRecipient = &pCollection->pEntityPool[pMsg->recipient];
+        struct Entity2D* pSender = &pCollection->pEntityPool[pMsg->sender];
+        for(int j = 0; j < pRecipient->numComponents; j++)
+        {
+            if(pRecipient->components[j].processMsg &&
+                pRecipient->components[j].acceptsMsg && 
+                pRecipient->components[j].acceptsMsg(&pRecipient->components[j], pMsg->type, pSender, pLayer))
+            {
+                pRecipient->components[j].processMsg(&pRecipient->components[j], pMsg, pRecipient, pSender, pLayer);
+            }
+        }
         if(pRecipient->handleEntityMsg)
         {
             pRecipient->handleEntityMsg(
