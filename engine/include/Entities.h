@@ -143,7 +143,7 @@ struct TilesComponent
         struct Sprite sprite;\
         struct StaticCollider staticCollider;\
         struct DynamicCollider dynamicCollider;\
-        struct TextSprite textSprite;\        
+        struct TextSprite textSprite;\
         struct AnimatedSprite spriteAnimator;\
         struct TilesComponent tiles;
     
