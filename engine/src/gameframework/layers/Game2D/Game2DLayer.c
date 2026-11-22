@@ -15,9 +15,7 @@
 #include "EntityQuadTree.h"
 #include "FloatingPointLib.h"
 #include "Camera2D.h"
-#include "Network.h"
 #include "Log.h"
-#include "Game2DLayerNetwork.h"
 #include "main.h"
 #include "cwalk.h"
 #include "Profile.h"
@@ -142,56 +140,6 @@ static void LoadLevelDataInternal(struct TileMap* pTileMap, struct BinarySeriali
 	BS_Finish(pBs);
 }
 
-static void LoadLevelDataFromServer(struct TileMap* pTileMap, DrawContext* pDC, hAtlas atlas, struct GameLayer2DData* pData)
-{
-	/*THIS HAS TO BE THE FIRST THING TO DEQUEUE CONNECTION EVENTS IF GAME2DLAYER IS USED*/
-	EASSERT(NW_GetRole(GR_Client));
-	struct NetworkConnectionEvent nce;
-	while(true)
-	{
-		while(NW_DequeueConnectionEvent(&nce))
-		{
-			if(nce.type == NCE_ClientConnected)
-			{
-				goto connected;
-			}
-		}
-	}
-connected:
-	Log_Info("game2d client connected, sending level request");
-	G2D_Enqueue_RequestLevelData();
-	Log_Info("Enqueued request");
-
-	struct NetworkQueueItem nci;
-	while(true)
-	{
-		while(NW_DequeueData(&nci))
-		{
-			Log_Info("Dequeued data size %i", nci.pDataSize);
-			u8* pBody = NULL;
-			int headerSize = 0;
-			enum G2DPacketType type = G2D_ParsePacket(nci.pData, &pBody, &headerSize);
-			bool bLoaded = false;
-			if(type == G2DPacket_LevelDataResponseData)
-			{
-				struct BinarySerializer bs;
-				BS_CreateForLoadFromBuffer(pBody, nci.pDataSize - headerSize, &bs);
-				if(pData->levelDataHandlerExtender)
-				{
-					pData->levelDataHandlerExtender(pData, &bs);
-				}
-				LoadLevelDataInternal(pTileMap, &bs, pDC, atlas, pData);
-				bLoaded = true;
-			}
-
-			free(nci.pData);
-			if(bLoaded)
-				goto level_loaded;
-		}
-	}
-level_loaded:
-	Log_Info("Level loaded from server"); /* because of what I can only assume is a compiler bug, there needs to be *something* after this label or msvc will chuck a syntax error here */
-}
 
 static void LoadLevelData(struct TileMap* pTileMap, const char* tilemapFilePath, DrawContext* pDC, hAtlas atlas, struct GameLayer2DData* pData)
 {
@@ -304,15 +252,6 @@ void G2D_SaveLevelDataInternal(struct GameLayer2DData* pData, struct BinarySeria
 static void Update(struct GameFrameworkLayer* pLayer, float deltaT)
 {
 	ZONE(tracy_ctx)
-	switch(NW_GetRole())
-	{
-	case GR_Client:
-		G2D_PollNetworkQueueClient(pLayer, deltaT);
-		break;
-	case GR_ClientServer:
-		G2D_PollNetworkQueueServer(pLayer, deltaT);
-		break;
-	}
 	struct GameLayer2DData* pData = pLayer->userData;
 
 	TP_DoTimers(&pData->timerPool, deltaT);
@@ -759,14 +698,7 @@ static void LoadLayerAssets(struct GameLayer2DData* pData, DrawContext* pDC)
 		ZONE_END(ctx)
 		return;
 	}
-	if(NW_GetRole() == GR_Client)
-	{
-		LoadLevelDataFromServer(&pData->tilemap, pDC, pData->hAtlas, pData);
-	}
-	else
-	{
-		LoadLevelData(&pData->tilemap, pData->tilemapFilePath, pDC, pData->hAtlas, pData);
-	}
+	LoadLevelData(&pData->tilemap, pData->tilemapFilePath, pDC, pData->hAtlas, pData);
 	
 	pData->bLoaded = true;
 	ZONE_END(ctx)
@@ -796,32 +728,6 @@ static void OnDebugLayerPushed(void* pUserData, void* pEventData)
 {
 	struct GameLayer2DData* pData = pUserData;
 	pData->bDebugLayerAttatched = true;
-}
- 
-static bool NetworkUpdateWorldstateCallback(struct SDTimer* pTimer)
-{
-	ZONE(ctx)
-	switch(NW_GetRole())
-	{
-	case GR_Client:
-		{
-			G2D_Enqueue_Worldstate_Packet(pTimer->pUserData, -1);
-		}
-		break;
-	case GR_ClientServer:
-		{
-			for(int i=0; i<3; i++)
-			{
-				if(G2D_IsClientConnected(i))
-				{
-					G2D_Enqueue_Worldstate_Packet(pTimer->pUserData, i);
-				}
-			}
-		}
-		break;
-	}
-	ZONE_END(ctx)
-	return false;
 }
 
 void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawContext, InputContext* inputContext)
@@ -854,19 +760,6 @@ void GameLayer2D_OnPush(struct GameFrameworkLayer* pLayer, DrawContext* drawCont
 	*/
 	pData->pDrawContext = drawContext;
 
-	if(NW_GetRole() != GR_Singleplayer)
-	{
-		struct SDTimer timerDef = {
-			.bActive = true,
-			.bRepeat = true,
-			.bAutoReset = true,
-			.total = 0.1f,
-			.fnCallback = &NetworkUpdateWorldstateCallback,
-			.pUserData = pData,
-			.elapsed = 0.0
-		};
-		pData->hNetworkStateUpdateTimer = TP_GetTimer(&pData->timerPool, &timerDef);
-	}
 	ZONE_END(tracy_ctx)
 }
 

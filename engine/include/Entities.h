@@ -235,7 +235,6 @@ void Et2D_SerializeCommon(struct BinarySerializer* bs, struct Entity2D* pInEnt);
 void Et2D_InitCollection(struct Entity2DCollection* pCollection);
 void Et2D_DestroyCollection(struct Entity2DCollection* pCollection, struct GameFrameworkLayer* pLayer);
 
-void Et2D_PrintEntitiesInfo(struct Entity2DCollection* pCollection);
 
 struct Entity2D
 {
@@ -292,11 +291,6 @@ struct Entity2D
     /** @brief do we serialize when the level is serialized? */
     bool bSerializeToDisk;
 
-    /** @brief do we serialize when the initial level data is sent to clients */
-    bool bSerializeToNetwork;
-
-    /** @brief do we serialize when the next network update is sent */
-    bool bSerializeInNetworkUpdate;
 
     int networkID;
 };

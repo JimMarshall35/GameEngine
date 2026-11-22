@@ -96,15 +96,6 @@ int Platform_InitWindow()
     // glfw window creation
     // --------------------
     const char* windowTitle = "Stardew Engine";
-    switch(NW_GetRole())
-    {
-    case GR_Client:
-        windowTitle = "Stardew Engine (Client)";
-        break;
-    case GR_ClientServer:
-        windowTitle = "Stardew Engine (Server)";
-        break;
-    }
     gWindow = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, windowTitle, NULL, NULL);
     if (gWindow == NULL)
     {

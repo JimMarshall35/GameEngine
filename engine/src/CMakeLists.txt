@@ -19,8 +19,6 @@ core/Bitfield2D.c
 core/Random.c
 core/SharedLib.c
 core/Thread.c
-core/Network.c
-core/RawNetMessage.c
 core/ThreadSafeQueue.c
 core/Log.c
 core/String.c
@@ -46,13 +44,11 @@ gameframework/layers/UI/widgets/RootWidget.c
 gameframework/layers/UI/widgets/TextEntryWidget.c
 gameframework/layers/UI/widgets/BarWidget.c
 gameframework/layers/Game2D/Game2DLayer.c
-gameframework/layers/Game2D/Game2DLayerNetwork.c
 gameframework/layers/Game2D/FreeLookCameraMode.c
 gameframework/layers/Game2D/Camera2D.c
 gameframework/layers/Game2D/Game2DVertexOutputHelpers.c
 gameframework/layers/Game2D/EntitySystem/Entities.c
 gameframework/layers/Game2D/EntitySystem/Entities2DCollection.c
-gameframework/layers/Game2D/EntitySystem/NetworkID.c
 gameframework/layers/Game2D/EntitySystem/EntityQuadtree.c
 gameframework/layers/Game2D/EntitySystem/Entities/StaticColliderEntity.c
 gameframework/layers/Game2D/EntitySystem/Components/Components.c

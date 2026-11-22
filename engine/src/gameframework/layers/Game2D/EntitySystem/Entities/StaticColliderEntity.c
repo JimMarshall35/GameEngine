@@ -75,7 +75,6 @@ void MakeInto2DRectStaticColliderEntity(struct Entity2D* pOutEnt,float w, float 
     };
     pOutEnt->components[pOutEnt->numComponents++] = cmp;
     pOutEnt->bSerializeToDisk = true;
-    pOutEnt->bSerializeToNetwork = true;
     SetStaticColliderCallbacks(pOutEnt);
 }
 

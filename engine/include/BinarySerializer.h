@@ -10,8 +10,6 @@ extern "c" {
 	enum SerializationContext
 	{
 		SCTX_ToFile,
-		SCTX_ToNetwork,
-		SCTX_ToNetworkUpdate
 	};
 
 	struct BinarySerializer

@@ -11,7 +11,6 @@
 #include "PlatformDefs.h"
 #include <libxml/parser.h>
 #include "Log.h"
-#include "Network.h"
 #include "AssertLib.h"
 #include "Audio.h"
 #include "cwalk.h"
@@ -49,16 +48,10 @@ typedef void(*GameInitFn)(InputContext*,DrawContext*);
 
 void Engine_ParseCmdArgs(int argc, char** argv, ArgHandlerFn handlerFn)
 {
-    gCmdArgs.role = GR_Singleplayer;
-    gCmdArgs.serverAddress = "127.0.0.1:40000";
-    gCmdArgs.clientAddress = "0.0.0.0";
-    gCmdArgs.matchmakingServerAddress = NULL;
-    gCmdArgs.playerName = "Jim";
     gCmdArgs.bLogTextColoured = true;
     gCmdArgs.bIncludeLogTimeStamps = true;
     gCmdArgs.bLogTIDs = true;
     gCmdArgs.logfilePath = NULL;
-    gCmdArgs.networkSimulatorConfigPath = NULL;
     gCmdArgs.bLogToConsole = true;
     gCmdArgs.assetsDir = "./WfAssets";
     gCmdArgs.configDir = "./WfAssets";
@@ -67,51 +60,9 @@ void Engine_ParseCmdArgs(int argc, char** argv, ArgHandlerFn handlerFn)
     {
         for(int i=1; i <argc; i++)
         {
-            
             Log_Info("Cmd arg %i: %s", i, argv[i]);
-            if(strcmp(argv[i], "--name") == 0 || strcmp(argv[i], "-n") == 0)
-            {
-                EASSERT(i + 1 < argc);
-                i++;
-                Log_Info("Cmd arg %i: %s", i, argv[i]);
-                gCmdArgs.playerName = argv[i];
-            }
-            if(strcmp(argv[i], "--role") == 0 || strcmp(argv[i], "-r") == 0)
-            {
-                EASSERT(i + 1 < argc);
-                i++;
-                Log_Info("Cmd arg %i: %s", i, argv[i]);
-                if(strcmp(argv[i], "server") == 0 || strcmp(argv[i], "s") == 0)
-                {
-                    gCmdArgs.role = GR_ClientServer;
-                }
-                else if(strcmp(argv[i], "client") == 0 || strcmp(argv[i], "c") == 0)
-                {
-                    gCmdArgs.role = GR_Client;
-                }
-            }
-            else if(strcmp(argv[i], "--server_address") == 0 || strcmp(argv[i], "-s") == 0)
-            {
-                EASSERT(i + 1 < argc);
-                i++;
-                Log_Info("Cmd arg %i: %s", i, argv[i]);
-                gCmdArgs.serverAddress = argv[i];
-            }
-            else if(strcmp(argv[i], "--client_address") == 0 || strcmp(argv[i], "-c") == 0)
-            {
-                EASSERT(i + 1 < argc);
-                i++;
-                Log_Info("Cmd arg %i: %s", i, argv[i]);
-                gCmdArgs.clientAddress = argv[i];
-            }
-            else if(strcmp(argv[i], "--matchmaking_address") == 0 || strcmp(argv[i], "-m") == 0)
-            {
-                EASSERT(i + 1 < argc);
-                i++;
-                Log_Info("Cmd arg %i: %s", i, argv[i]);
-                gCmdArgs.matchmakingServerAddress = argv[i];
-            }
-            else if(strcmp(argv[i], "--log_level") == 0 || strcmp(argv[i], "-l") == 0)
+
+            if(strcmp(argv[i], "--log_level") == 0 || strcmp(argv[i], "-l") == 0)
             {
                 EASSERT(i + 1 < argc);
                 i++;
@@ -156,13 +107,6 @@ void Engine_ParseCmdArgs(int argc, char** argv, ArgHandlerFn handlerFn)
             {
                 gCmdArgs.bLogToConsole = false;
             }
-            else if(strcmp(argv[i], "--network_sim_config") == 0)
-            {
-                EASSERT(i + 1 < argc);
-                i++;
-                Log_Info("Cmd arg %i: %s", i, argv[i]);
-                gCmdArgs.networkSimulatorConfigPath = argv[i];
-            }
             else if(strcmp(argv[i], "--assetsDir") == 0)
             {
                 EASSERT(i + 1 < argc);
@@ -185,21 +129,11 @@ void Engine_ParseCmdArgs(int argc, char** argv, ArgHandlerFn handlerFn)
     }
 }
 
-static void DoNetworkQueues()
-{
-    /* placeholder */
-    struct NetworkConnectionEvent event; 
-    while(NW_DequeueConnectionEvent(&event))
-    {
-        Log_Info("NETWORK EVENT: %s CLIENT: %i", event.type == NCE_ClientConnected ? "NCE_ClientConnected" : "NCE_ClientDisconnected", event.client);
-    }
-}
 
 int EngineStart(int argc, char** argv, GameInitFn init, ArgHandlerFn argHandler)
 {
     Engine_ParseCmdArgs(argc, argv, argHandler);
     Log_Init();
-    NW_Init();
     int audioSystemInitCode = Au_Init();
     Log_Info("Initialized audio, return code: %i", audioSystemInitCode);
 
@@ -259,7 +193,6 @@ int EngineStart(int argc, char** argv, GameInitFn init, ArgHandlerFn argHandler)
         {
             FRAME_MARK
             Platform_PollEvents();
-            //DoNetworkQueues();
             GF_InputGameFramework(&gInputContext);
             GF_UpdateGameFramework((float)slice);
             In_EndFrame(&gInputContext);

@@ -3,7 +3,6 @@
 
 #include "DrawContext.h"
 #include "InputContext.h"
-#include "Network.h"
 #include <stdbool.h>
 #include "SharedLib.h"
 
@@ -31,17 +30,11 @@ void Engine_ParseCmdArgs(int argc, char** argv, ArgHandlerFn handlerFn);
 
 struct CommandLineArgs
 {
-    enum GameRole role;
-    char* serverAddress;
-    char* clientAddress;
-    char* matchmakingServerAddress;
-    char* playerName;
     bool bLogTextColoured;
     bool bIncludeLogTimeStamps;
     bool bLogTIDs;
     bool bLogToConsole;
     const char* logfilePath;
-    const char* networkSimulatorConfigPath;
     const char* assetsDir;
     const char* configDir;
 };
