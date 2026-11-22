@@ -199,7 +199,7 @@ static int NetcodeLog(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     
-    sprintf(buf, gCmdArgs.bLogTextColoured ? netcodeColouredLogTagString : netcodeLogTagString);
+    sprintf(buf, "%s", gCmdArgs.bLogTextColoured ? netcodeColouredLogTagString : netcodeLogTagString);
     int len = strlen(buf);
     vsnprintf(buf + len, 512 - len, fmt, args);
     len = strlen(buf);

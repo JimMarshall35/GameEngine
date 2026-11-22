@@ -58,7 +58,7 @@ int vLog_Fmt(const char* fmt, enum LogLvl lvl, va_list args)
     }
     char gLogBuffer[1024];
     char** levelNames = gCmdArgs.bLogTextColoured ? gColouredLogLevelNames : gLogLevelNames;
-    snprintf(gLogBuffer, 512, levelNames[lvl]);
+    snprintf(gLogBuffer, 512, "%s", levelNames[lvl]);
     int namelen = strlen(levelNames[lvl]);
     char* start = gLogBuffer + namelen;
     if(gCmdArgs.bIncludeLogTimeStamps)
